@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.channel.service.ChannelMasterMapper">
+
+	<resultMap id="channelMap" type="org.fincl.miss.server.channel.service.Channel">
+  		<id property="channelId" column="CH_ID" />
+  		<result property="channelName" column="CH_NAME"/>
+  		<result property="channelDescription" column="CH_DESC"/>
+  		<result property="inOutTypeCode" column="IN_OUT_TYPE_CD"/>
+  		<result property="port" column="PORT"/>
+  		<result property="protocolTypeCode" column="PRTC_CD"/>
+  		<result property="requestDataTypeCode" column="REQ_DATA_TYPE_CD"/>
+  		<result property="requestDataOption" column="REQ_DATA_OPT"/>
+  		<result property="responseDataTypeCode" column="RES_DATA_TYPE_CD"/>
+  		<result property="responseDataOption" column="RES_DATA_OPT"/>
+  		<result property="singleYn" column="SINGLE_YN"/>
+  		<result property="sslYn" column="SSL_YN"/>
+  		<result property="autoStartYn" column="AUTO_STRT_YN"/>
+  		<result property="outBoundChannelHost" column="OUT_CH_HOST"/>
+  		<result property="outBoundHttpUri" column="OUT_REQ_URI"/>
+  		<result property="txRawDataTypeCode" column="TX_RAW_DATA_TYPE_CD"/>
+  		<result property="headerLengthSize" column="HEADER_LENGTH_SIZE"/>
+  		<result property="stxSize" column="STX_SIZE"/>
+  		<result property="stxHex" column="STX_HEX"/>
+  		<result property="etxSize" column="ETX_SIZE"/>
+  		<result property="etxHex" column="ETX_HEX"/>
+  		<result property="eotSize" column="EOT_SIZE"/>
+  		<result property="eotHex" column="EOT_HEX"/>
+  		<result property="charsetCode" column="CHAR_SET_CD"/>
+  		<result property="bufferSize" column="BUF_SIZE"/>
+  		<result property="timeoutSeconds" column="TO_SEC"/>
+  		<result property="threadCount" column="TH_CNT"/>
+  		<result property="createId" column="CREATE_ID"/>
+  		<result property="createDate" column="CREATE_DATE"/>
+  		<result property="modifyId" column="MODIFY_ID"/>
+  		<result property="modifyDate" column="MODIFY_DATE"/>
+  		<result property="relationId" column="RELATION_ID" />
+  		<result property="syncTypeCode" column="SYNC_TYPE_CD" />
+	</resultMap>
+
+	<select id="getChannelList" resultMap="channelMap">
+		SELECT
+			A.CH_ID
+			,A.CH_NAME
+			,A.CH_DESC
+			,A.IN_OUT_TYPE_CD
+			,A.PORT
+			,A.PRTC_CD
+			,A.REQ_DATA_TYPE_CD
+			,A.REQ_DATA_OPT
+			,A.RES_DATA_TYPE_CD
+			,A.RES_DATA_OPT
+			,A.SINGLE_YN
+			,A.SSL_YN
+			,A.AUTO_STRT_YN
+			,A.OUT_CH_HOST
+			,A.OUT_REQ_URI
+			,A.TX_RAW_DATA_TYPE_CD
+			,A.HEADER_LENGTH_SIZE
+			,A.STX_SIZE
+			,A.STX_HEX
+			,A.ETX_SIZE
+			,A.ETX_HEX
+			,A.EOT_SIZE
+			,A.EOT_HEX
+			,A.BUF_SIZE
+			,A.CHAR_SET_CD
+			,A.TO_SEC
+			,A.TH_CNT
+			,A.RELATION_ID
+			,A.SYNC_TYPE_CD
+		FROM
+			TB_IFS_TLGM_CHANNEL A
+		ORDER BY
+			A.IN_OUT_TYPE_CD ASC
+	</select>
+	
+	<select id="getChannel" parameterType="java.lang.String" resultMap="channelMap">
+		SELECT
+			A.CH_ID
+			,A.CH_NAME
+			,A.CH_DESC
+			,A.IN_OUT_TYPE_CD
+			,A.PORT
+			,A.PRTC_CD
+			,A.REQ_DATA_TYPE_CD
+			,A.REQ_DATA_OPT
+			,A.RES_DATA_TYPE_CD
+			,A.RES_DATA_OPT
+			,A.SINGLE_YN
+			,A.SSL_YN
+			,A.AUTO_STRT_YN
+			,A.OUT_CH_HOST
+			,A.OUT_REQ_URI
+			,A.TX_RAW_DATA_TYPE_CD
+			,A.HEADER_LENGTH_SIZE
+			,A.STX_SIZE
+			,A.STX_HEX
+			,A.ETX_SIZE
+			,A.ETX_HEX
+			,A.EOT_SIZE
+			,A.EOT_HEX
+			,A.BUF_SIZE
+			,A.CHAR_SET_CD
+			,A.TO_SEC
+			,A.TH_CNT
+			,A.RELATION_ID
+			,A.SYNC_TYPE_CD
+		FROM
+			TB_IFS_TLGM_CHANNEL A
+		WHERE
+			A.CH_ID = #{channelId}
+			<if test='inOutTypeCode != null and inOutTypeCode != ""'>
+			AND A.IN_OUT_TYPE_CD = #{inOutTypeCode}
+			</if>
+	</select>
+	
+	<!-- InBound채널은 OutBound채널, OutBound채널은 InBound채널 상반되는 채널에 대해 동일한 규격의 채널을 조회 -->
+	<select id="getMatchingChannel" parameterType="org.fincl.miss.server.channel.service.Channel" resultMap="channelMap">
+		SELECT
+			A.CH_ID
+			,A.CH_NAME
+			,A.CH_DESC
+			,A.IN_OUT_TYPE_CD
+			,A.PORT
+			,A.PRTC_CD
+			,A.REQ_DATA_TYPE_CD
+			,A.REQ_DATA_OPT
+			,A.RES_DATA_TYPE_CD
+			,A.RES_DATA_OPT
+			,A.SINGLE_YN
+			,A.SSL_YN
+			,A.AUTO_STRT_YN
+			,A.OUT_CH_HOST
+			,A.OUT_REQ_URI
+			,A.TX_RAW_DATA_TYPE_CD
+			,A.HEADER_LENGTH_SIZE
+			,A.STX_SIZE
+			,A.STX_HEX
+			,A.ETX_SIZE
+			,A.ETX_HEX
+			,A.EOT_SIZE
+			,A.EOT_HEX
+			,A.BUF_SIZE
+			,A.CHAR_SET_CD
+			,A.TO_SEC
+			,A.TH_CNT
+			,A.RELATION_ID
+			,A.SYNC_TYPE_CD
+		FROM
+			TB_IFS_TLGM_CHANNEL A
+		WHERE
+			A.IN_OUT_TYPE_CD = #{inOutTypeCode, jdbcType=CHAR}
+			AND A.TX_RAW_DATA_TYPE_CD = #{txRawDataTypeCode, jdbcType=CHAR}
+			AND A.HEADER_LENGTH_SIZE = #{headerLengthSize, jdbcType=INTEGER}
+			AND A.REQ_DATA_TYPE_CD = #{requestDataTypeCode, jdbcType=CHAR}
+			AND A.RES_DATA_TYPE_CD = #{responseDataTypeCode, jdbcType=CHAR}
+	</select>
+
+</mapper>

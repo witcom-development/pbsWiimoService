@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.logging.db.service.ServiceLogMapper">
+
+	<insert id="addServiceLog" parameterType="org.fincl.miss.server.logging.db.service.ServiceLog">
+		INSERT INTO TB_IOT_DEVICE_SDATA_COLEC_RSLT
+		(
+			RECV_DTTM,
+			DEVICE_ID, 
+			COLEC_RSLT_CD, 
+			DEVICE_LINK_TYPE_CD, 
+			REQ_TELEGRAM, 
+			RES_TELEGRAM
+		)
+		VALUES
+		(
+			SYSDATE(), 
+			#{device_id}, 
+			#{serviceId, jdbcType=VARCHAR}, 
+			#{device_link_type_cd},  
+			#{requestData, jdbcType=CLOB} ,
+			#{responseData, jdbcType=CLOB}
+		)
+	</insert>
+	
+	<!-- PubSub의 경우 응답 정보를 Update 함 -->
+	<update id="modifyServiceLog" parameterType="org.fincl.miss.server.logging.db.service.ServiceLog">
+		UPDATE
+			TB_IFS_SERVICE_LOG
+		SET
+			,END_DATE = TO_TIMESTAMP(#{endDate, jdbcType=DATE}, 'YYYYMMDDHH24MISSFF')
+			,RES_CH_ID = #{responseChannelId, jdbcType=CHAR}
+			,ESTM_TIME = #{estimateTime, jdbcType=CHAR}
+			,RES_CODE = #{resultCode, jdbcType=VARCHAR}
+			,RES_MSG = #{resultMessage, jdbcType=VARCHAR}
+			,RES_DATA = #{responseData, jdbcType=CLOB}
+			,CLIENT_ID = #{clientId, jdbcType=VARCHAR}
+			,CLIENT_IP = #{clientIp, jdbcType=VARCHAR}
+			,IF_ID = #{interfaceId, jdbcType=VARCHAR}
+		WHERE
+			GUID = #{guid, jdbcType=VARCHAR}
+	</update>
+	
+
+</mapper>

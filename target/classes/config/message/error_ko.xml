@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	<entry key="0000">성공</entry>
+	<entry key="1001">입력 파라미터 오류</entry>
+	<entry key="9999">정의되지 않은 오류</entry>
+</properties>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	<entry key="00000000">성공</entry>
+	
+	<!-- 서비스 등록 -->
+	<entry key="10000000">서비스 등록 처리 중 오류가 발생 하였습니다.</entry>
+	<entry key="10000001">서비스 등록 설정파일을 찾지 못하였습니다.</entry>
+	<entry key="10000002">서비스 등록 클래스를 찾지 못하였습니다.</entry>
+	
+	<!-- 서비스 실행 -->
+	<entry key="10000010">서비스 실행 중 오류가 발생 하였습니다.</entry>
+	<entry key="10000011">등록되지 않은 서비스입니다.</entry>
+	<entry key="10000012">ServiceId 필드가 누락 되었습니다.</entry>
+	<entry key="10000013">사용이 정지된 서비스입니다.</entry>
+	<entry key="10000014">현재 사용할 수 없는 서비스입니다.</entry>
+	
+	<!-- Biz 서비스 처리 -->
+	<entry key="10000020">서비스 내 Tcp Client 접속 오류가 발생 하였습니다.</entry>
+	<entry key="10000021">서비스 내 Tcp Client 접속 종료 중 오류가 발생 하였습니다.</entry>
+	<entry key="10000022">서비스 내 Tcp Client 메시지 전송 중 오류가 발생 하였습니다.</entry>
+	
+	<!-- 메시지 파서 -->
+	<entry key="10000030">메시지 헤더 처리 중 오류가 발생 하였습니다.</entry>
+	<entry key="10000031">메시지 파서 처리 중 오류가 발생 하였습니다.</entry>
+	<entry key="10000032">미지원 기능 오류가 발생 하였습니다.</entry>
+	<entry key="10000033">Service Id가 누락 되었습니다.</entry>
+	
+	<entry key="10000034">Form 메시지 파서 처리 중 오류가 발생 하였습니다.</entry>
+	<entry key="10000035">JSON 메시지 파서 처리 중 오류가 발생 하였습니다.</entry>
+	<entry key="10000036">XML 메시지 파서 처리 중 오류가 발생 하였습니다.</entry>
+	<entry key="10000037">Echo 메시지 파서 처리 중 오류가 발생 하였습니다.</entry>
+	<entry key="10000038">Stress 메시지 파서 처리 중 오류가 발생 하였습니다.</entry>
+	<entry key="10000039">공공자전거 메시지 파서 처리 중 오류가 발생 하였습니다.</entry>
+	
+	<entry key="10000040">Form 메시지 빌더 처리 중 오류가 발생 하였습니다.</entry>
+	<entry key="10000041">JSON 메시지 빌더 처리 중 오류가 발생 하였습니다.</entry>
+	<entry key="10000042">XML 메시지 빌더 처리 중 오류가 발생 하였습니다.</entry>
+	<entry key="10000043">Echo 메시지 빌더 처리 중 오류가 발생 하였습니다.</entry>
+	<entry key="10000044">Stress 메시지 빌더 처리 중 오류가 발생 하였습니다.</entry>
+	<entry key="10000045">공공자전거 메시지 빌더 처리 중 오류가 발생 하였습니다.</entry>
+	
+	<!-- 서버(InBound) 채널 -->
+	<entry key="10000100">채널에서 오류가 발생하였습니다.</entry>
+	<entry key="10000101">채널 제어 중 오류가 발생하였습니다.</entry>
+	<entry key="10000102">설정정보에 존재하지 않는 채널입니다.</entry>
+	<entry key="10000103">채널 시작 중 오류가 발생하였습니다.</entry>
+	<entry key="10000104">채널 종료 중 발생하였습니다.</entry>
+	<entry key="10000105">채널 상태 조회 중 오류가 발생하였습니다.</entry>
+	<entry key="10000106">채널 재시작 중 오류가 발생하였습니다.</entry>
+	<entry key="10000107">채널 추가 중 오류가 발생하였습니다.</entry>
+	<entry key="10000108">채널이 이미 정지 중입니다.</entry>
+	<entry key="10000109">채널 삭제 중 오류가 발생하였습니다.</entry>
+	<entry key="10000110">채널이 존재 하지 않습니다.</entry>
+	<entry key="10000111">채널이 시작되지 않았습니다.</entry>
+	<entry key="10000112">채널 Load 중 오류가 발생하였습니다.</entry>
+	<entry key="10000113">채널 UnLad 중 오류가 발생하였습니다.</entry>
+	
+	<entry key="10000114">메시지 디코딩 중 오류가 발생하였습니다.</entry>
+	<entry key="10000115">메시지 인코딩 중 오류가 발생하였습니다.</entry>
+	
+	<entry key="10000116">채널에서 지원되지 않는 기능입니다.</entry>
+	
+	<!-- 클라이언트(OuBound) 채널 -->
+	<entry key="10000150">채널에서 메시지 발송(Sender) 중 오류가 발생하였습니다.</entry>
+	
+	<!-- 채널 로깅 -->
+	<entry key="10000199">채널 메시지 로깅 중 오류가 발생하였습니다.</entry>
+
+	<!-- 기본 전문 처리 -->
+	<entry key="10000300">전문 메시지 Parse오류</entry>
+	<entry key="10000301">전문 메시지 Build오류</entry>
+	<entry key="10000302">Class를 찾을 수 없습니다.</entry>
+	<entry key="10000303">Class Instance 생성 실패 하였습니다.</entry>
+	<entry key="10000304">Class Instance 접근실패 하였습니다.</entry>
+	<entry key="10000305">메소드 접근실패 하였습니다.</entry>
+	<entry key="10000306">메소드 파라미터 접근실패 하였습니다.</entry>
+	<entry key="10000307">메소드 실행실패 하였습니다.</entry>
+	<entry key="10000308">스트림을 쓰는중 에러가 발생하였습니다.</entry>
+	<entry key="10000309">필수값이 입력되지 않았습니다.</entry>
+    <entry key="10000310">다이나믹헤더 ID가 없습니다.</entry> 
+    <entry key="10000311">XML 파싱처리중 에러가 발생하였습니다.</entry>
+    <entry key="10000312">XML 노드읽기 실패 하였습니다.</entry>
+    <entry key="10000313">XML 파일이 존재 하지 않습니다.</entry>
+    <entry key="10000314">디렉토리가 아닙니다.</entry>
+    <entry key="10000315">interface 디렉토리가 존재하지 않습니다.</entry>
+ 
+ 	<!-- E2E -->
+ 	<entry key="10000500">E2E Key가 존재하지 않습니다.</entry>
+ 	<entry key="10000501">E2E Key 처리 중 오류가 발생하였습니다.</entry>
+ 	
+ 	<!-- 내부 처리 오류 -->
+	<entry key="99991900">내부 처리 오류가 발생 하였습니다.</entry>
+	<entry key="99991901">쿼리 실행 중 오류가 발생 하였습니다.</entry>
+	<entry key="99999999">정의되지 않은 오류</entry>
+
+	<!-- 스케쥴러 오류 -->
+	<entry key="99020001">스케쥴러 실행 중 오류가 발생하였습니다.</entry>
+	<entry key="99020002">스케쥴러 실행 중 오류가 발생하였습니다.</entry>
+
+</properties>
+
+
+
+ 
+    

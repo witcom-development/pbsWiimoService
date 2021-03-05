@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.scheduler.job.sms.service.SmsMessageMapper">
+	
+	<resultMap id="resultMessageVO" type="org.fincl.miss.server.scheduler.job.sms.SmsMessageVO">
+		<result column="seqno" property="seqno" />
+		<result column="callback" property="callback" />
+		<result column="destno" property="destno" />
+		<result column="msg" property="msg" />
+		<result column="insdttm" property="insdttm" />
+		<result column="reqdttm" property="reqdttm" />
+		<result column="rsltdttm" property="rsltdttm" />
+		<result column="repdttm" property="repdttm" />
+		<result column="status" property="status" />
+		<result column="result" property="result" />
+		<result column="telcode" property="telcode" />
+		<result column="type" property="type" />
+		<result column="title" property="title" />
+		<result column="auto_send_id" property="autoSendId" />
+		<result column="auto_send_yn" property="autoSendYn" />
+		<result column="send_count" property="sendCount" />
+	</resultMap>
+	
+	<resultMap id="resultPartitinoVO" type="org.fincl.miss.server.scheduler.job.sms.PartitionVO">
+		<result column="tableName" property="tableName" />
+		<result column="partitionName" property="partitionName" />
+		<result column="newPartitionName" property="newPartitionName" />
+		<result column="partitionVal" property="partitionVal" />
+	</resultMap>
+	
+	<resultMap id="smsBody" type="org.fincl.miss.server.sms.vo.SmsBodyVO">
+		<result column="SMS_SEQ" property="smsSeq" />
+		<result column="SEND_CLS_NAME" property="sendClsName" />
+		<result column="AUTO_SEND_YN" property="autoSendYN" />
+		<result column="AUTO_SEND_ID" property="autoSendID" />
+		<result column="ORIGNL_MSG" property="orignlMsg" />
+		<result column="NOTE_DESC" property="noteDesc" />
+		<result column="REG_ID" property="regID" />
+		<result column="REG_DTTM" property="regDttm" />
+		<result column="ADMIN_ID" property="adminID" />
+		<result column="ADMIN_NAME" property="adminName" />
+	</resultMap>
+	
+	<select id="getFailSmsList"  resultMap="resultMessageVO">
+	 <![CDATA[
+    SELECT 
+        seqno,
+        destno,
+        callback,
+        auto_send_id,
+        auto_send_yn,
+        ifnull(send_count,0)+1 as send_count,
+        type,
+        msg,
+        title
+    FROM
+        SOMQ_LOG
+    WHERE
+        1=1
+        AND ifnull(send_count,0) < CAST((SELECT ADD_VAL1 FROM spb.TB_SYS_COM_CD WHERE COM_CD ='MSI_016') AS UNSIGNED)
+        AND ifnull(auto_send_yn,'N') = 'N'
+        AND reqdttm > DATE_ADD(now(), INTERVAL -6 HOUR)
+        AND ((type = 'S' AND result > 6) OR (type = 'M' AND result > 1000)) 
+        AND msg is not null 
+      ]]>			
+	</select>
+	
+	<update id="updateAutoSendResult" parameterType="org.fincl.miss.server.scheduler.job.sms.SmsMessageVO">
+		UPDATE
+			SOMQ_LOG
+		SET
+			auto_send_yn = 'Y'
+		WHERE
+			seqno = #{seqno}
+	</update>
+	
+	<!-- 
+	<insert id="insertSmsMessage" parameterType="org.fincl.miss.server.scheduler.job.sms.SmsMessageVO" useGeneratedKeys="true" keyProperty="seqno">
+		INSERT INTO TSMS_AGENT_MESSAGE
+			(
+				SEND_MESSAGE,
+				SUBJECT,
+				BACKUP_MESSAGE,
+				RECEIVE_MOBILE_NO,
+				JOB_TYPE,
+				SEND_RESERVE_DATE,
+				TEMPLATE_CODE,
+				REGISTER_DATE,
+				REGISTER_BY,
+				SEND_DATE
+			)
+		values
+			(
+				#{msg}, 
+				<choose>
+					<when test="autoSendId!='' and autoSendId!=null">
+						(SELECT SEND_CLS_NAME FROM TB_SYS_SMS WHERE AUTO_SEND_ID = #{autoSendId} AND AUTO_SEND_YN = 'Y'),		
+					</when>
+					<otherwise>
+						#{title},
+					</otherwise>
+				</choose>
+				#{msg},
+				REPLACE(#{destno}, '-', ''),
+				'R00',
+				NOW(),
+				REPLACE(#{autoSendId}, '_', ''),
+				NOW(),
+				'Admin',
+				NOW()
+			)
+	</insert>
+	 -->
+	<!-- SMS => 카카오 알림톡 변경_20171016_JJH_END -->
+	
+	<insert id="insertSmsMessage" parameterType="org.fincl.miss.server.scheduler.job.sms.SmsMessageVO" useGeneratedKeys="true" keyProperty="seqno">
+		INSERT INTO TELINK
+			(
+				CMP_MSG_ID,WRT_DTTM,SND_DTTM,SND_PHN_ID,RCV_PHN_ID,CALLBACK,SND_MSG,RSRVD_ID
+			)
+		values
+			(
+				CONCAT('9000', DATE_FORMAT(NOW(),'%Y%m%d%H%i%s'), #{etc3}),
+				DATE_FORMAT(NOW(),'%Y%m%d%H%i%s'),
+				DATE_FORMAT(NOW(),'%Y%m%d%H%i%s'),
+				'12341234',
+				REPLACE(#{destno}, '-', ''),
+				'12341234',
+				#{msg}, 
+				'BPS'
+			)
+	</insert>
+	
+	
+	<insert id="insertTAPPMessage" parameterType="org.fincl.miss.server.scheduler.job.sms.TAPPMessageVO" useGeneratedKeys="true" keyProperty="seqno">
+		INSERT INTO TB_TMONEY_NOTICE
+			(
+				NOTICE_SE,
+				SUBJECT,
+				SEND_MESSAGE,
+				USR_SEQ,
+				BIKE_NO,
+				STATION_NAME,
+    			OVER_MI,
+    			OVER_FEE,
+    			SEND_ATT_CNT,
+    			SEND_YN,
+    			REG_DTTM
+			)
+		values
+			(
+				#{notice_se}, 
+				<choose>
+					<when test="autoSendId!='' and autoSendId!=null">
+						(SELECT SEND_CLS_NAME FROM TB_SYS_SMS WHERE AUTO_SEND_ID = #{autoSendId} AND AUTO_SEND_YN = 'Y'),		
+					</when>
+					<otherwise>
+						#{title},
+					</otherwise>
+				</choose>
+				#{msg},
+				#{usr_seq},
+				#{bike_no},
+				#{station_name},
+				#{over_mi},
+				#{over_fee},
+				0,'N',NOW()
+			)
+	</insert>
+	<!-- SMS => TAPP 전송_20191018_Bright_END -->
+
+	<select id="getSmsMessageList"  resultMap="smsBody">
+		 SELECT 
+		 	AUTO_SEND_ID, 
+		 	ORIGNL_MSG, 
+		 	SEND_CLS_NAME 
+		 FROM 
+		 	TB_SYS_SMS 
+		 WHERE 
+		 	AUTO_SEND_YN = 'Y' 
+		 	AND AUTO_SEND_ID IS NOT NULL
+	</select>
+	
+	<select id="getSmsBody"  resultMap="smsBody"  parameterType="string">
+		 SELECT 
+		 	AUTO_SEND_ID, 
+		 	ORIGNL_MSG, 
+		 	SEND_CLS_NAME 
+		 FROM 
+		 	TB_SYS_SMS 
+		 WHERE 
+		 	AUTO_SEND_YN = 'Y' 
+		 	AND AUTO_SEND_ID IS NOT NULL
+		 	AND AUTO_SEND_ID = #{autoSendID}
+	</select>
+	
+	<select id="getDropPartitionList"  resultMap="resultPartitinoVO">
+    <![CDATA[
+    SELECT 
+    	B.TABLE_NAME as 'tableName', 
+    	CONCAT(B.PART_NAME, '_', A.PART_DATE) as 'partitionName'
+    FROM
+    (
+     SELECT TABLE_NAME, SUBSTRING_INDEX(PARTITION_NAME, '_', -1) PART_DATE
+     FROM INFORMATION_SCHEMA.PARTITIONS
+     WHERE TABLE_SCHEMA = 'spb'
+     AND PARTITION_NAME IS NOT NULL
+     AND PARTITION_NAME NOT LIKE '%_DEF'
+    ) A,
+    (
+     SELECT TABLE_NAME, LEFT(PARTITION_NAME, LENGTH(PARTITION_NAME) - LENGTH(SUBSTRING_INDEX(PARTITION_NAME,'_',-1))-1) PART_NAME,
+      DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 15 DAY), '%Y%m%d') DEL_PART_VAL
+     FROM INFORMATION_SCHEMA.PARTITIONS A
+     WHERE TABLE_SCHEMA = 'spb'
+     AND PARTITION_NAME IS NOT NULL
+     AND PARTITION_NAME NOT LIKE '%_DEF'
+     GROUP BY TABLE_NAME
+    ) B
+    WHERE A.TABLE_NAME = B.TABLE_NAME
+    AND A.PART_DATE < B.DEL_PART_VAL
+    AND A.TABLE_NAME = 'TB_IOT_DEVICE_SDATA_COLEC_RSLT'
+    ORDER BY 1
+    ]]>
+	</select>
+	
+	<select id="getCreateDailyPartitionListWithToDays"  resultMap="resultPartitinoVO">
+	 <![CDATA[
+        SELECT
+            A.TABLE_NAME as 'tableName',
+            CONCAT(A.PART_NAME, '_DEF') as 'partitionName',
+            CONCAT(A.PART_NAME, '_', B.NEW_PART_NAME) as 'newPartitionName',
+            B.NEW_PART_VAL as 'partitionVal'
+        FROM (
+            SELECT
+                    A.TABLE_NAME,
+                    A.PART_NAME,
+                    B.MAX_PART
+            FROM
+             (
+              SELECT DISTINCT TABLE_NAME, LEFT(PARTITION_NAME, LENGTH(PARTITION_NAME) - LENGTH(SUBSTRING_INDEX(PARTITION_NAME,'_',-1))-1) PART_NAME
+               FROM INFORMATION_SCHEMA.PARTITIONS A
+                WHERE TABLE_SCHEMA = 'spb'
+                AND TABLE_NAME IN('TB_IOT_DEVICE_CTRL_REQ_RSLT', 'TB_IOT_DEVICE_SDATA_COLEC_RSLT', 'TB_SYS_ADMIN_LOGIN_HIST')
+                AND PARTITION_NAME IS NOT NULL
+              ) A,
+               (
+                SELECT TABLE_NAME,
+                      MAX(SUBSTRING_INDEX(PARTITION_NAME, '_', -1)) MAX_PART
+            FROM INFORMATION_SCHEMA.PARTITIONS
+                WHERE TABLE_SCHEMA = 'spb'
+                AND TABLE_NAME IN('TB_IOT_DEVICE_CTRL_REQ_RSLT', 'TB_IOT_DEVICE_SDATA_COLEC_RSLT', 'TB_SYS_ADMIN_LOGIN_HIST')
+                AND PARTITION_NAME IS NOT NULL
+                AND PARTITION_NAME NOT LIKE '%_DEF'
+             GROUP BY TABLE_NAME
+             ) B
+            WHERE A.TABLE_NAME = B.TABLE_NAME
+          ) A,
+          (
+      SELECT A.TABLE_NAME,
+       DATE_FORMAT(DATE_SUB(DATE_ADD(CURDATE(), INTERVAL 8 DAY), INTERVAL RN DAY), '%Y-%m-%d') NEW_PART_VAL,
+          DATE_FORMAT(DATE_SUB(DATE_ADD(CURDATE(), INTERVAL 7 DAY), INTERVAL RN DAY), '%Y%m%d') NEW_PART_NAME
+      FROM
+      (
+       SELECT DISTINCT TABLE_NAME
+       FROM INFORMATION_SCHEMA.PARTITIONS A
+                WHERE TABLE_SCHEMA = 'spb'
+                AND TABLE_NAME IN('TB_IOT_DEVICE_CTRL_REQ_RSLT', 'TB_IOT_DEVICE_SDATA_COLEC_RSLT', 'TB_SYS_ADMIN_LOGIN_HIST')
+       AND PARTITION_NAME IS NOT NULL
+      ) A,
+      (
+       SELECT (@ROWNUM:=@ROWNUM+1) RN
+       FROM INFORMATION_SCHEMA.PARTITIONS A,
+       (SELECT @ROWNUM:=0 FROM DUAL) B
+       LIMIT 365
+      ) B
+     ) B
+     WHERE A.TABLE_NAME = B.TABLE_NAME
+     AND A.MAX_PART < B.NEW_PART_NAME
+      ]]>
+	</select>
+	
+	<select id="getCreateDailyPartitionList"  resultMap="resultPartitinoVO">
+	 <![CDATA[
+        SELECT
+           A.TABLE_NAME as 'tableName',
+        	CONCAT(A.PART_NAME, '_DEF') as 'partitionName',
+        	CONCAT(A.PART_NAME, '_', B.NEW_PART_NAME) as 'newPartitionName',
+        	B.NEW_PART_VAL as 'partitionVal'
+         FROM
+         (
+          SELECT
+                    A.TABLE_NAME,
+                    A.PART_NAME,
+                    B.MAX_PART
+                FROM
+                (
+                    SELECT DISTINCT TABLE_NAME, LEFT(PARTITION_NAME, LENGTH(PARTITION_NAME) - LENGTH(SUBSTRING_INDEX(PARTITION_NAME,'_',-1))-1) PART_NAME
+                    FROM INFORMATION_SCHEMA.PARTITIONS A
+                    WHERE TABLE_SCHEMA = 'spb'
+                    AND TABLE_NAME IN('TB_STA_BIKE_USE_DD', 'TB_STA_BIKE_USE_HH', 'TB_STA_STATION_GRP_MOVE_DD')
+                    AND PARTITION_NAME IS NOT NULL
+                ) A,
+                (
+                    SELECT TABLE_NAME,
+                        MAX(SUBSTRING_INDEX(PARTITION_NAME, '_', -1)) MAX_PART
+                    FROM INFORMATION_SCHEMA.PARTITIONS
+                    WHERE TABLE_SCHEMA = 'spb'
+                    AND TABLE_NAME IN('TB_STA_BIKE_USE_DD', 'TB_STA_BIKE_USE_HH', 'TB_STA_STATION_GRP_MOVE_DD')
+                    AND PARTITION_NAME IS NOT NULL
+                    AND PARTITION_NAME NOT LIKE '%_DEF'
+                    GROUP BY TABLE_NAME
+                ) B
+                WHERE A.TABLE_NAME = B.TABLE_NAME
+         ) A,
+         (
+          SELECT A.TABLE_NAME,
+           DATE_FORMAT(DATE_SUB(DATE_ADD(CURDATE(), INTERVAL 8 DAY), INTERVAL RN DAY), '%Y-%m-%d') NEW_PART_VAL,
+              DATE_FORMAT(DATE_SUB(DATE_ADD(CURDATE(), INTERVAL 7 DAY), INTERVAL RN DAY), '%Y%m%d') NEW_PART_NAME
+          FROM
+          (
+           SELECT DISTINCT TABLE_NAME
+           FROM INFORMATION_SCHEMA.PARTITIONS A
+                    WHERE TABLE_SCHEMA = 'spb'
+                    AND TABLE_NAME IN('TB_STA_BIKE_USE_DD', 'TB_STA_BIKE_USE_HH', 'TB_STA_STATION_GRP_MOVE_DD')
+           AND PARTITION_NAME IS NOT NULL
+          ) A,
+          (
+           SELECT (@ROWNUM:=@ROWNUM+1) RN
+           FROM INFORMATION_SCHEMA.PARTITIONS A,
+           (SELECT @ROWNUM:=0 FROM DUAL) B
+           LIMIT 365
+          ) B
+         ) B
+         WHERE A.TABLE_NAME = B.TABLE_NAME
+         AND A.MAX_PART < B.NEW_PART_NAME
+      ]]>
+	</select>
+	
+	<select id="getCreateMonthPartitionList"  resultMap="resultPartitinoVO">
+	 <![CDATA[
+        SELECT
+          A.TABLE_NAME as 'tableName',
+          CONCAT(A.PART_NAME, '_DEF') as 'partitionName',
+          CONCAT(A.PART_NAME, '_', B.NEW_PART_NAME) as 'newPartitionName',
+          B.NEW_PART_VAL as 'partitionVal'
+         FROM
+         (
+          SELECT
+                    A.TABLE_NAME,
+                    A.PART_NAME,
+                    B.MAX_PART
+                FROM
+                (
+                    SELECT DISTINCT TABLE_NAME, LEFT(PARTITION_NAME, LENGTH(PARTITION_NAME) - LENGTH(SUBSTRING_INDEX(PARTITION_NAME,'_',-1))-1) PART_NAME
+                    FROM INFORMATION_SCHEMA.PARTITIONS A
+                    WHERE TABLE_SCHEMA = 'spb'
+                    AND TABLE_NAME IN('TB_STA_BIKE_USE_MM', 'TB_STA_STATION_GRP_MOVE_MM')
+                    AND PARTITION_NAME IS NOT NULL
+                ) A,
+                (
+                    SELECT TABLE_NAME,
+                        MAX(SUBSTRING_INDEX(PARTITION_NAME, '_', -1)) MAX_PART
+                    FROM INFORMATION_SCHEMA.PARTITIONS
+                    WHERE TABLE_SCHEMA = 'spb'
+                    AND TABLE_NAME IN('TB_STA_BIKE_USE_MM', 'TB_STA_STATION_GRP_MOVE_MM')
+                    AND PARTITION_NAME IS NOT NULL
+                    AND PARTITION_NAME NOT LIKE '%_DEF'
+                    GROUP BY TABLE_NAME
+                ) B
+                WHERE A.TABLE_NAME = B.TABLE_NAME
+         ) A,
+         (
+                SELECT A.TABLE_NAME,
+                 DATE_FORMAT(DATE_SUB(DATE_ADD(CURDATE(), INTERVAL 8 MONTH), INTERVAL RN MONTH), '%Y%m') NEW_PART_VAL,
+                    DATE_FORMAT(DATE_SUB(DATE_ADD(CURDATE(), INTERVAL 7 MONTH), INTERVAL RN MONTH), '%Y%m') NEW_PART_NAME
+                FROM
+                (
+                 SELECT DISTINCT TABLE_NAME
+                 FROM INFORMATION_SCHEMA.PARTITIONS A
+                    WHERE TABLE_SCHEMA = 'spb'
+                    AND TABLE_NAME IN('TB_STA_BIKE_USE_MM', 'TB_STA_STATION_GRP_MOVE_MM')
+                 AND PARTITION_NAME IS NOT NULL
+                ) A,
+                (
+                 SELECT (@ROWNUM:=@ROWNUM+1) RN
+                 FROM INFORMATION_SCHEMA.PARTITIONS A,
+                 (SELECT @ROWNUM:=0 FROM DUAL) B
+                 LIMIT 16
+                ) B
+         ) B
+         WHERE A.TABLE_NAME = B.TABLE_NAME
+         AND A.MAX_PART < B.NEW_PART_NAME
+
+      ]]>
+	</select>
+	
+	<select id="getCreateMonthPartitionListWithToDays"  resultMap="resultPartitinoVO">
+	 <![CDATA[
+        SELECT
+          A.TABLE_NAME as 'tableName',
+          CONCAT(A.PART_NAME, '_DEF') as 'partitionName',
+          CONCAT(A.PART_NAME, '_', B.NEW_PART_NAME) as 'newPartitionName',
+          CONCAT(B.NEW_PART_VAL, '-01') as 'partitionVal'
+         FROM
+         (
+          SELECT
+                    A.TABLE_NAME,
+                    A.PART_NAME,
+                    B.MAX_PART
+                FROM
+                (
+                    SELECT DISTINCT TABLE_NAME, LEFT(PARTITION_NAME, LENGTH(PARTITION_NAME) - LENGTH(SUBSTRING_INDEX(PARTITION_NAME,'_',-1))-1) PART_NAME
+                    FROM INFORMATION_SCHEMA.PARTITIONS A
+                    WHERE TABLE_SCHEMA = 'spb'
+                    AND TABLE_NAME IN('TB_SVC_PAYMENT', 'TB_SVC_RENT_HIST', 'TB_SVC_RENT_MOVE_INFO')
+                    AND PARTITION_NAME IS NOT NULL
+                ) A,
+                (
+                    SELECT TABLE_NAME,
+                        MAX(SUBSTRING_INDEX(PARTITION_NAME, '_', -1)) MAX_PART
+                    FROM INFORMATION_SCHEMA.PARTITIONS
+                    WHERE TABLE_SCHEMA = 'spb'
+                    AND TABLE_NAME IN('TB_SVC_PAYMENT', 'TB_SVC_RENT_HIST', 'TB_SVC_RENT_MOVE_INFO')
+                    AND PARTITION_NAME IS NOT NULL
+                    AND PARTITION_NAME NOT LIKE '%_DEF'
+                    GROUP BY TABLE_NAME
+                ) B
+                WHERE A.TABLE_NAME = B.TABLE_NAME
+         ) A,
+         (
+          SELECT A.TABLE_NAME,
+           DATE_FORMAT(DATE_SUB(DATE_ADD(CURDATE(), INTERVAL 8 MONTH), INTERVAL RN MONTH), '%Y-%m') NEW_PART_VAL,
+              DATE_FORMAT(DATE_SUB(DATE_ADD(CURDATE(), INTERVAL 7 MONTH), INTERVAL RN MONTH), '%Y%m') NEW_PART_NAME
+          FROM
+          (
+           SELECT DISTINCT TABLE_NAME
+           FROM INFORMATION_SCHEMA.PARTITIONS A
+                    WHERE TABLE_SCHEMA = 'spb'
+                    AND TABLE_NAME IN('TB_SVC_PAYMENT', 'TB_SVC_RENT_HIST', 'TB_SVC_RENT_MOVE_INFO')
+           AND PARTITION_NAME IS NOT NULL
+          ) A,
+          (
+           SELECT (@ROWNUM:=@ROWNUM+1) RN
+           FROM INFORMATION_SCHEMA.PARTITIONS A,
+           (SELECT @ROWNUM:=0 FROM DUAL) B
+           LIMIT 16
+          ) B
+         ) B
+         WHERE A.TABLE_NAME = B.TABLE_NAME
+         AND A.MAX_PART < B.NEW_PART_NAME
+      ]]>
+	</select>
+	
+	<update id="execDropPartition"  parameterType="org.fincl.miss.server.scheduler.job.sms.PartitionVO">
+		ALTER TABLE ${tableName}  
+		DROP PARTITION ${partitionName} 
+	</update>
+	
+	<update id="execCreatePartitionWithToDays"  parameterType="org.fincl.miss.server.scheduler.job.sms.PartitionVO">
+		ALTER TABLE ${tableName} 
+		REORGANIZE PARTITION ${partitionName} 
+		INTO (PARTITION ${newPartitionName} VALUES LESS THAN(TO_DAYS(#{partitionVal})), 
+		PARTITION ${partitionName} VALUES LESS THAN MAXVALUE)
+	</update>
+	
+	<update id="execCreatePartition"  parameterType="org.fincl.miss.server.scheduler.job.sms.PartitionVO">
+		ALTER TABLE ${tableName} 
+		REORGANIZE PARTITION ${partitionName} 
+		INTO (PARTITION ${newPartitionName} VALUES LESS THAN(#{partitionVal}), 
+		PARTITION ${partitionName} VALUES LESS THAN MAXVALUE)
+	</update>
+</mapper>

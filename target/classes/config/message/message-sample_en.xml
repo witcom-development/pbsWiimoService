@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+	<entry key="sample.title.availableLanguages">Available Language List</entry>
+
+	<entry key="sample.language.ko">Korean</entry>
+	<entry key="sample.language.en">English</entry>
+
+</properties>

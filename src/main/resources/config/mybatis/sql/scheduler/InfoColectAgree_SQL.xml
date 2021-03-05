@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.scheduler.job.infoAgree.service.InfoColectAgreeMapper">
+    <select id="getOverFeeProcTarget" resultType="Map">
+         SELECT dg_decrypt('TB_SVC_USR', 'USR_MPN_NO', U.USR_MPN_NO) AS mpnNo
+               ,dg_decrypt('TB_SVC_MB', 'MB_EMAIL_NAME', B.MB_EMAIL_NAME) AS mbEmailName
+               ,B.MB_ID           AS mbId
+           FROM spb.TB_SVC_USR U INNER JOIN spb.TB_SVC_MB B ON U.USR_SEQ = B.USR_SEQ
+          WHERE date_format(now(),'%Y-%m-%d') = date_format(DATE_ADD(B.MB_INFO_COLEC_AGREE_DTTM , INTERVAL 24 MONTH),'%Y-%m-%d')
+             OR date_format(now(),'%Y-%m-%d') = date_format(DATE_ADD(B.MB_INFO_COLEC_AGREE_DTTM , INTERVAL 25 MONTH),'%Y-%m-%d')
+             OR date_format(now(),'%Y-%m-%d') = date_format(DATE_ADD(B.MB_INFO_COLEC_AGREE_DTTM , INTERVAL 26 MONTH),'%Y-%m-%d')
+    </select>
+    
+    <select id="getInfoColectMailId" resultType="String">
+         SELECT ADD_VAL1
+          FROM TB_SYS_COM_CD
+          WHERE COM_CD = 'TPL_002'
+        
+    </select>    
+</mapper>

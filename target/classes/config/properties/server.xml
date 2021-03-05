@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	<entry key="serverId">OPSV01</entry>
+	<entry key="serverGroupId">OPSV</entry>
+	<entry key="serverKey">01</entry>
+	<entry key="serverName">ONE-Platform-Service</entry>
+	<entry key="monitoring.traffic.port">3333</entry> <!-- 내부 관리용 Port  -->
+	<entry key="monitoring.flash.policy.port">6843</entry> <!-- 내부 관리용 Port  -->
+</properties>

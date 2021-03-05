@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+	<entry key="application.root">/svc/miss/repo/application/service</entry>
+	<entry key="application.host">http://10.112.58.245:8180</entry>
+	<entry key="application.data">/svc/miss/repo/data</entry>
+	<entry key="application.svn">/svc/miss/repo/svn</entry>
+	
+	<entry key="appDeploy.path">/service/appDown.json</entry>
+	<entry key="appDeploy.plist">/service/iOSplist.json</entry>
+	
+	<!-- 앱 리소스 관리 SVN 경로 -->
+	<entry key="svn.repository.root">/svc/miss/repo/svn/repository</entry>
+	<entry key="svn.working.root">/svc/miss/repo/svn/working</entry>
+	<entry key="svn.sample.root">/svc/miss/repo/svn/sample</entry>
+	<entry key="svn.upload.root">/svc/miss/repo/svn/upload</entry>
+	<entry key="svn.temp.root">/svc/miss/repo/svn/temp</entry>
+	
+	<!-- 파일 경로 -->
+	<entry key="dir.web">/svc/miss/repo/data/webdata</entry>
+	<entry key="dir.app">/svc/miss/repo/data/app/</entry>
+	<entry key="dir.resource">/svc/miss/repo/data/resource/</entry>
+	<entry key="dir.certification">/svc/miss/repo/data/certification/</entry>
+	<entry key="dir.icon">/svc/miss/repo/data/app/icon/</entry>
+	<entry key="dir.screen">/svc/miss/repo/data/app/img/</entry>
+	<entry key="dir.attach">/svc/miss/repo/data/attach/</entry>
+	<entry key="dir.private">/svc/miss/repo/data/private/</entry>
+	
+	<entry key="upload.path">/svc/miss/repo/data/temp/</entry>
+	<entry key="upload.allow.size">104857600</entry>
+	
+</properties>

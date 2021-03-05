@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.scheduler.job.voucherEndChk.service.VoucherEndChkMapper">
+    <select id="getVoucherEndUserInfo" resultType="org.fincl.miss.server.scheduler.job.voucherEndChk.vo.VoucherEndChkVO">
+    	SELECT V.PAYMENT_CLS_CD,
+		   		(SELECT MLANG_COM_CD_NAME FROM TB_SYS_MLANG_COM_CD WHERE LANG_CLS_CD = 'LAG_001' AND COM_CD = V.PAYMENT_CLS_CD) AS PAYMENT_CD,
+		   		V.USR_SEQ,
+		   		DG_DECRYPT('TB_SVC_USR', 'USR_MPN_NO', U.USR_MPN_NO) AS USR_MPN_NO,
+		   		(SELECT CD_DESC1 FROM TB_SYS_COM_CD WHERE U.TELECOM_CLS_CD = COM_CD) AS TELECOM_CD
+		FROM TB_SVC_VOUCHER V LEFT JOIN TB_SVC_USR U ON V.USR_SEQ = U.USR_SEQ
+		WHERE 1=1
+		AND PAYMENT_CLS_CD NOT IN ('BIL_006', 'BIL_007', 'BIL_008', 'BIL_009', 'BIL_010', 'BIL_016', 'BIL_017', 'BIL_999')
+		AND VOUCHER_USE_YN = 'Y'
+		AND U.USR_MPN_NO IS NOT NULL
+		AND STR_TO_DATE(VOUCHER_END_DTTM, '%Y-%m-%d') = STR_TO_DATE(NOW() +  INTERVAL 1 DAY, '%Y-%m-%d') 
+    </select>
+</mapper>

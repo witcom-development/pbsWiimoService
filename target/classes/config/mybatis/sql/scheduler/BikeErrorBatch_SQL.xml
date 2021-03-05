@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.scheduler.job.bikeError.BikeBatteryErrorMapper">
+    <select id="getBikeBatteryErrorList" resultType="String">
+     SELECT B.BIKE_ID
+       FROM spb.TB_OPR_BIKE B INNER JOIN spb.TB_OPR_BIKE_PARKING P ON B.BIKE_ID = P.BIKE_ID
+      WHERE B.DBTRY_CNT >= (SELECT ADD_VAL1
+                            FROM spb.TB_SYS_COM_CD
+                           WHERE COM_CD = 'MSI_004')
+    
+    </select>
+    
+    <select id="chkExistMTCFaultInfo"  parameterType="Map" resultType="String">
+         SELECT IFNULL(F.FAULT_SEQ,'')
+           FROM spb.TB_MTC_FAULT_INFO F LEFT OUTER JOIN spb.TB_MTC_FAULT_DETL D ON F.FAULT_SEQ = D.FAULT_SEQ
+          WHERE F.READ_CLS_CD ='S'
+            AND F.EQUIPMENT_ID = #{equipmentId}
+            AND F.EQUIPMENT_CLS_CD = #{devType}
+            <if test='errorType == "old"'>
+            AND D.FAULT_CLS_CD = #{clsCd}
+            </if> 
+    </select>    
+    
+    <update id="initBatteryCnt"  parameterType="Map">
+        UPDATE spb.TB_OPR_BIKE
+        <trim prefix="set" prefixOverrides=",">
+           <if test='clsCd == "ERB_003"'>
+           DBTRY_CNT = 0
+           </if>
+           <if test='errorType == "new"'>
+           ,BIKE_STUS_CD = 'BKS_001'
+           </if>
+        </trim>   
+         WHERE BIKE_ID = #{equipmentId} 
+    </update>    
+    <update id="setRackStatus"  parameterType="Map">
+        UPDATE spb.TB_OPR_RACK
+           SET RACK_STUS_CD = 'RAS_001'
+         WHERE RACK_ID = #{equipmentId} 
+    </update>    
+    <update id="setApStatus"  parameterType="Map">
+        UPDATE spb.TB_IOT_DEVICE
+           SET DEVICE_STUS_CD = 'APS_001'
+         WHERE DEVICE_ID = #{equipmentId} 
+    </update>    
+    <insert id="addDeviceErrReport" parameterType="Map">
+        <selectKey resultType="int" keyProperty="faultSeq" order="BEFORE">
+        	SELECT IFNULL(MAX(CONVERT(FAULT_SEQ, UNSIGNED))+1,1) AS faultSeq 
+        	  FROM TB_MTC_FAULT_INFO
+    	</selectKey>
+        INSERT INTO spb.TB_MTC_FAULT_INFO
+            (
+             EQUIPMENT_ID
+            ,EQUIPMENT_CLS_CD
+            ,READ_CLS_CD
+            ,REG_DTTM
+            ,MOD_DTTM
+            ,MOD_ID
+            ,FAULT_CONTENT
+            )VALUES(
+             #{equipmentId}   
+            ,#{devType}     
+            ,'S'  
+            ,NOW()
+            ,NOW()
+            ,NULL
+            ,'BATCH'
+            )
+    </insert>
+    <insert id="addDeviceErrFaultDetail" parameterType="Map">
+        INSERT INTO spb.TB_MTC_FAULT_DETL
+            (
+             FAULT_SEQ
+            ,FAULT_CLS_CD
+            ,REG_DTTM
+            )VALUES(
+                #{faultSeq}
+               ,#{clsCd}
+               ,NOW() 
+            )
+    </insert>
+    <select id="getIOTBikeErrorList" resultType="Map">
+         SELECT A.BIKE_ID        AS deviceId 
+              , B.LAST_CONN_DTTM AS lastConnDttm
+           FROM TB_OPR_BIKE_PARKING A, TB_IOT_DEVICE B, TB_OPR_BIKE C 
+          WHERE A.BIKE_ID = C.BIKE_ID 
+            AND  C.BIKE_ID = B.DEVICE_ID
+    <![CDATA[                
+            AND DATE_ADD( B.LAST_CONN_DTTM ,INTERVAL ((SELECT ADD_VAL1
+                                                       FROM spb.TB_SYS_COM_CD
+                                                       WHERE COM_CD = 'MSI_003') * 3) minute) < NOW()
+    ]]>                                                   
+    </select>    
+    <!--
+        장애저치 정기점검-자전거, AP ,거치대. 
+    -->
+    <select id="getTargetDeviceList" resultType="String" parameterType="Map">
+        <choose>
+        <when test='devType == "DEV_001"'>
+        <![CDATA[    
+         SELECT BIKE_ID
+           FROM spb.TB_OPR_BIKE
+           WHERE DATE_ADD(LAST_CHK_DTTM ,INTERVAL (SELECT ADD_VAL1
+                                                     FROM spb.TB_SYS_COM_CD
+                                                    WHERE COM_CD = 'MSI_006')  DAY) < NOW()
+        ]]>                                            
+        </when>
+        <when  test='devType == "DEV_003"'>
+        <![CDATA[
+         SELECT DEVICE_ID
+           FROM spb.TB_IOT_DEVICE
+           WHERE DATE_ADD(LAST_CHK_DTTM ,INTERVAL (SELECT ADD_VAL1
+                                                     FROM spb.TB_SYS_COM_CD
+                                                    WHERE COM_CD = 'MSI_007')  DAY) <  NOW()
+        ]]>                                               
+        </when>
+        <otherwise>
+        <![CDATA[
+         SELECT RACK_ID
+           FROM spb.TB_OPR_RACK
+           WHERE DATE_ADD(LAST_CHK_DTTM ,INTERVAL (SELECT ADD_VAL1
+                                                     FROM spb.TB_SYS_COM_CD
+                                                    WHERE COM_CD = 'MSI_008')  DAY) < NOW()
+         ]]>                                                
+        </otherwise>
+        </choose>    
+    </select>    
+</mapper>

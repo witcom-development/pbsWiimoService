@@ -1,0 +1,590 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.scheduler.job.systemStats.service.BikeSystemStatsManualMapper">
+    
+    <delete id="delManualStatsData" parameterType="Map">
+        <choose>
+            <when test='batchType == "STATS0"'>
+                DELETE FROM TB_STA_BIKE_USE_HH 
+                 WHERE STAT_DATE = STR_TO_DATE(#{batchParam},'%Y%m%d')
+            </when>    
+            <when test='batchType == "STATS1"'>
+                DELETE FROM TB_STA_BIKE_USE_DD 
+                 WHERE STAT_DATE = STR_TO_DATE(#{batchParam},'%Y%m%d')
+            </when>    
+            <when test='batchType == "STATS2"'>
+                DELETE FROM TB_STA_BIKE_USE_MM 
+                 WHERE STAT_DATE = #{batchParam}
+            </when>    
+            <when test='batchType == "STATS3"'>
+                DELETE FROM TB_STA_NEW_MB_DD 
+                 WHERE STAT_DATE = STR_TO_DATE(#{batchParam},'%Y%m%d')
+            </when>    
+            <when test='batchType == "STATS4"'>
+                DELETE FROM TB_STA_NEW_MB_MM 
+                 WHERE STAT_DATE = #{batchParam}
+            </when>    
+            <when test='batchType == "STATS5"'>
+                DELETE FROM TB_STA_STATION_GRP_MOVE_DD 
+                 WHERE STAT_DATE = STR_TO_DATE(#{batchParam},'%Y%m%d')
+            </when>    
+            <when test='batchType == "STATS6"'>
+                DELETE FROM TB_STA_STATION_GRP_MOVE_MM 
+                 WHERE STAT_DATE = #{batchParam}
+            </when>    
+            <when test='batchType == "STATS7"'>
+                DELETE FROM TB_STA_STATION_RENT_DD 
+                 WHERE STAT_DATE = STR_TO_DATE(#{batchParam},'%Y%m%d')
+            </when>    
+            <when test='batchType == "STATS8"'>
+                DELETE FROM TB_STA_STATION_RENT_MM 
+                 WHERE STAT_DATE = #{batchParam}
+            </when>    
+            <when test='batchType == "STATS9"'>
+                DELETE FROM TB_STA_FAULT_DD 
+                 WHERE STAT_DATE = STR_TO_DATE(#{batchParam},'%Y%m%d')
+            </when>    
+            <when test='batchType == "STATS10"'>
+                DELETE FROM TB_STA_FAULT_MM 
+                 WHERE STAT_DATE = #{batchParam}
+            </when>    
+            <when test='batchType == "STAT11"'>
+                DELETE FROM TB_STA_REPAIR_DD 
+                 WHERE STAT_DATE = STR_TO_DATE(#{batchParam},'%Y%m%d')
+            </when>    
+            <when test='batchType == "STATS12"'>
+                DELETE FROM TB_STA_REPAIR_MM 
+                 WHERE STAT_DATE = #{batchParam}
+            </when>    
+            <when test='batchType == "STATS13"'>
+                DELETE FROM TB_STA_PAYMENT_DD 
+                 WHERE STAT_DATE = STR_TO_DATE(#{batchParam},'%Y%m%d')
+            </when>    
+            <when test='batchType == "STATS14"'>
+                DELETE FROM TB_STA_PAYMENT_MM 
+                 WHERE STAT_DATE = #{batchParam}
+            </when>    
+            <when test='batchType == "STATS15"'>
+                DELETE FROM TB_STA_FOREIGN_RENT_DD 
+                 WHERE STAT_DATE = STR_TO_DATE(#{batchParam},'%Y%m%d')
+            </when>    
+            <otherwise>
+                DELETE FROM TB_STA_FOREIGN_RENT_MM 
+                 WHERE STAT_DATE = #{batchParam}
+            </otherwise>    
+        </choose>    
+    </delete>
+    <insert id="addManualStatsData" parameterType="Map">
+        <choose>
+            <when test='batchType == "STATS0"'>
+                <!--자전거 이용 통계 -시간-->
+           <![CDATA[    
+           INSERT INTO TB_STA_BIKE_USE_HH
+            (
+                STAT_DATE,
+                STAT_HH,
+                RENT_CLS_CD,
+                SEX_CD,
+                AGES_CD,
+                STATION_ID,
+                USE_CNT,
+                MVM_QUNT,
+                CO2_QUNT,
+                MOVE_DIST,
+                USE_MI
+            )
+            SELECT
+                STAT_DATE
+              , STAT_HH
+              , RENT_CLS_CD
+              , SEX_CD
+              , AGES_CD
+              , RENT_STATION_ID
+              , COUNT(*) USE_CNT
+              , SUM(CONSUME_CAL) CONSUME_CAL
+              , SUM(REDUCE_CO2) REDUCE_CO2
+              , SUM(MOVE_DIST) MOVE_DIST
+              , SUM(USE_MI) USE_MI
+            FROM
+            (
+               SELECT
+                    DATE_FORMAT(A.RENT_DTTM, '%Y%m%d') STAT_DATE,
+                    DATE_FORMAT(A.RENT_DTTM, '%H') STAT_HH,
+                    A.RENT_CLS_CD,
+                    B.SEX_CD,
+                    CASE
+                        WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', B.USR_BIRTH_DATE))) BETWEEN 0  AND 19 THEN 'AGE_001'
+                        WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', B.USR_BIRTH_DATE))) BETWEEN 20 AND 29 THEN 'AGE_002'
+                        WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', B.USR_BIRTH_DATE))) BETWEEN 30 AND 39 THEN 'AGE_003'
+                        WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', B.USR_BIRTH_DATE))) BETWEEN 40 AND 49 THEN 'AGE_004'
+                        WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', B.USR_BIRTH_DATE))) BETWEEN 50 AND 59 THEN 'AGE_005'
+                        WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', B.USR_BIRTH_DATE))) BETWEEN 60 AND 69 THEN 'AGE_006'
+                        ELSE 'AGE_007'
+                    END AGES_CD,
+                    RENT_STATION_ID,
+                    IFNULL(CONSUME_CAL, 0) CONSUME_CAL,
+                    IFNULL(REDUCE_CO2,  0) REDUCE_CO2,
+                    IFNULL(USE_DIST, 0) MOVE_DIST,
+                    IFNULL(USE_MI, 0) USE_MI
+                FROM TB_SVC_RENT_HIST A LEFT OUTER JOIN TB_SVC_USR B ON A.USR_SEQ = B.USR_SEQ
+               WHERE RENT_DTTM BETWEEN STR_TO_DATE(#{batchParam},'%Y%m%d  %H%i%s') AND (STR_TO_DATE(#{batchParam},'%Y%m%d') + INTERVAL 1 DAY - INTERVAL 1 SECOND)
+                 AND A.RENT_HIST_SEQ  IN ( SELECT RENT_HIST_SEQ FROM TB_SVC_RENT_HIST X1
+                                           WHERE X1.RENT_HIST_SEQ = A.RENT_HIST_SEQ
+                                             AND (  A.USE_MI >= 2
+                                                   OR (A.USE_MI < 2 AND X1.RENT_STATION_ID <> X1.RETURN_STATION_ID ) 
+                                                  )
+                                        )
+            ) A 
+            GROUP BY STAT_DATE, STAT_HH, RENT_CLS_CD, SEX_CD, AGES_CD, RENT_STATION_ID
+            ]]>     
+            </when>    
+            <when test='batchType == "STATS1"'>
+                <!--자전거 이용 통계 -2일 전-->
+                INSERT INTO TB_STA_BIKE_USE_DD
+                (
+                    STAT_DATE,
+                    RENT_CLS_CD,
+                    SEX_CD,
+                    AGES_CD,
+                    STATION_ID,
+                    USE_CNT,
+                    MVM_QUNT,
+                    CO2_QUNT,
+                    MOVE_DIST,
+                    USE_MI
+                )
+                SELECT
+                    STAT_DATE,
+                    RENT_CLS_CD,
+                    SEX_CD,
+                    AGES_CD,
+                    STATION_ID,
+                    SUM(USE_CNT) USE_CNT,
+                    SUM(MVM_QUNT) MVM_QUNT,
+                    SUM(CO2_QUNT) CO2_QUNT,
+                    SUM(MOVE_DIST) MOVE_DIST,
+                    SUM(USE_MI) USE_MI
+                FROM TB_STA_BIKE_USE_HH
+                WHERE STAT_DATE  = STR_TO_DATE(#{batchParam},'%Y%m%d') 
+                GROUP BY STAT_DATE,
+                    RENT_CLS_CD,
+                    SEX_CD,
+                    AGES_CD,
+                    STATION_ID
+            </when>    
+            <when test='batchType == "STATS2"'>
+                <!--자전거 이용 통계 -월-->
+                INSERT INTO TB_STA_BIKE_USE_MM
+                (
+                    STAT_MM,
+                    RENT_CLS_CD,
+                    SEX_CD,
+                    AGES_CD,
+                    STATION_ID,
+                    USE_CNT,
+                    MVM_QUNT,
+                    CO2_QUNT,
+                    MOVE_DIST,
+                    USE_MI
+                )
+                SELECT
+                    DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+                    RENT_CLS_CD,
+                    SEX_CD,
+                    AGES_CD,
+                    STATION_ID,
+                    SUM(USE_CNT) USE_CNT,
+                    SUM(MVM_QUNT) MVM_QUNT,
+                    SUM(CO2_QUNT) CO2_QUNT,
+                    SUM(MOVE_DIST) MOVE_DIST,
+                    SUM(USE_MI) USE_MI
+                FROM TB_STA_BIKE_USE_HH
+                WHERE STAT_DATE BETWEEN LAST_DAY(concat(#{batchParam},'01')) + INTERVAL 1 DAY AND LAST_DAY(concat(#{batchParam},'01') + INTERVAL 1 MONTH)
+                GROUP BY
+                    DATE_FORMAT(STAT_DATE, '%Y%m'),
+                    RENT_CLS_CD,
+                    SEX_CD,
+                    AGES_CD,
+                    STATION_ID
+            </when>    
+            <when test='batchType == "STATS3"'>
+            <!--신규 회원 통계 일-->
+                INSERT INTO TB_STA_NEW_MB_DD
+                (
+                    STAT_DATE,
+                    USR_CLS_CD,
+                    AGES_CD,
+                    SEX_CD,
+                    NEW_MB_CNT
+                )
+                SELECT
+                    STAT_DATE,
+                    USR_CLS_CD,
+                    AGES_CD,
+                    SEX_CD,
+                    COUNT(*) NEW_MB_CNT
+                FROM
+                (
+                    SELECT
+                        DATE_FORMAT(A.REG_DTTM, '%Y%m%d') STAT_DATE,
+                        A.USR_CLS_CD,
+                        CASE
+                            WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', A.USR_BIRTH_DATE))) BETWEEN 0  AND 19 THEN 'AGE_001'
+                            WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', A.USR_BIRTH_DATE))) BETWEEN 20 AND 29 THEN 'AGE_002'
+                            WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', A.USR_BIRTH_DATE))) BETWEEN 30 AND 39 THEN 'AGE_003'
+                            WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', A.USR_BIRTH_DATE))) BETWEEN 40 AND 49 THEN 'AGE_004'
+                            WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', A.USR_BIRTH_DATE))) BETWEEN 50 AND 59 THEN 'AGE_005'
+                            WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', A.USR_BIRTH_DATE))) BETWEEN 60 AND 69 THEN 'AGE_006'
+                            ELSE 'AGE_007'
+                        END AGES_CD,
+                        A.SEX_CD
+                    FROM TB_SVC_USR A
+                    WHERE A.REG_DTTM BETWEEN STR_TO_DATE(#{batchParam}, '%Y%m%d%H%i%s') AND STR_TO_DATE(CONCAT(#{batchParam},' 235959'), '%Y%m%d%H%i%s')
+                    AND USR_CLS_CD IN ('USR_001', 'USR_002')
+                ) A
+                GROUP BY STAT_DATE, USR_CLS_CD, AGES_CD, SEX_CD
+            </when>    
+            <when test='batchType == "STATS4"'>
+                 <!--신규 회원 통계 월-->
+                 INSERT INTO TB_STA_NEW_MB_MM
+                (
+                    STAT_MM,
+                    USR_CLS_CD,
+                    AGES_CD,
+                    SEX_CD,
+                    NEW_MB_CNT
+                )
+                SELECT
+                    DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+                    USR_CLS_CD,
+                    AGES_CD,
+                    SEX_CD,
+                    SUM(NEW_MB_CNT) NEW_MB_CNT
+                FROM TB_STA_NEW_MB_DD
+                WHERE STAT_DATE BETWEEN STR_TO_DATE(CONCAT(#{batchParam},'01'), '%Y%m%d')  AND LAST_DAY(STR_TO_DATE(CONCAT(#{batchParam},'01'), '%Y%m%d')) 
+                GROUP BY
+                    DATE_FORMAT(STAT_DATE, '%Y%m'),
+                    USR_CLS_CD,
+                    AGES_CD,
+                    SEX_CD
+            </when>    
+            <when test='batchType == "STATS5"'>
+                <!--대여소 그룹 이동 통계 - 일-->
+              <![CDATA[
+               INSERT INTO TB_STA_STATION_GRP_MOVE_DD
+               (
+                    STAT_DATE,
+                    RENT_STATION_GRP_SEQ,
+                    RETURN_STATION_GRP_SEQ,
+                    GRP_MOVE_CNT
+                )
+              SELECT  DATE_FORMAT(A.RENT_DTTM, '%Y%m%d') STAT_DATE,
+                      IFNULL(B.STATION_GRP_SEQ, 0) AS RENT_STATION_GRP_SEQ,    /* 대여 그룹이 없는 경우 0으로 변경 */
+                      IFNULL(C.STATION_GRP_SEQ, 0) AS RETURN_STATION_GRP_SEQ,  /* 반납 그룹이 없는 경우 0으로 변경(강제반납) */
+                      COUNT(*) GRP_MOVE_CNT
+                FROM TB_SVC_RENT_HIST A LEFT OUTER JOIN TB_OPR_STATION B ON A.RENT_STATION_ID = B.STATION_ID
+                                        LEFT OUTER JOIN TB_OPR_STATION C ON A.RETURN_STATION_ID = C.STATION_ID
+                WHERE A.RENT_DTTM  BETWEEN STR_TO_DATE(#{batchParam},'%Y%m%d  %H%i%s') AND (STR_TO_DATE(#{batchParam},'%Y%m%d') + INTERVAL 1 DAY - INTERVAL 1 SECOND)
+                  AND A.RENT_HIST_SEQ  IN ( SELECT RENT_HIST_SEQ FROM TB_SVC_RENT_HIST X1
+                                             WHERE X1.RENT_HIST_SEQ = A.RENT_HIST_SEQ
+                                               AND (  A.USE_MI >= 2
+                                                     OR (A.USE_MI < 2 AND X1.RENT_STATION_ID <> X1.RETURN_STATION_ID ) 
+                                                    )
+                                          )
+                 GROUP BY DATE_FORMAT(A.RENT_DTTM, '%Y%m%d')
+                        ,B.STATION_GRP_SEQ
+                        ,C.STATION_GRP_SEQ  
+           ]]> 
+            </when>    
+            <when test='batchType == "STATS6"'>
+                <!--대여소 그룹 이동 통계 - 월-->
+                INSERT INTO TB_STA_STATION_GRP_MOVE_MM
+                    (
+                        STAT_MM,
+                        RENT_STATION_GRP_SEQ,
+                        RETURN_STATION_GRP_SEQ,
+                        GRP_MOVE_CNT
+                    )
+                    SELECT
+                        DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+                        RENT_STATION_GRP_SEQ,
+                        RETURN_STATION_GRP_SEQ,
+                        SUM(GRP_MOVE_CNT) GRP_MOVE_CNT
+                    FROM TB_STA_STATION_GRP_MOVE_DD
+                    WHERE STAT_DATE BETWEEN LAST_DAY(concat(#{batchParam},'01')) + INTERVAL 1 DAY AND LAST_DAY(concat(#{batchParam},'01') + INTERVAL 1 MONTH)
+                    GROUP BY
+                        DATE_FORMAT(STAT_DATE, '%Y%m'),
+                        RENT_STATION_GRP_SEQ,
+                        RETURN_STATION_GRP_SEQ
+            </when>    
+            <when test='batchType == "STATS7"'>
+                <!--대여소 통계 - 일-->
+             <![CDATA[    
+                INSERT INTO TB_STA_STATION_RENT_DD
+                (
+                    STAT_DATE,
+                    STATION_ID,
+                    RENT_CNT,
+                    RETURN_CNT
+                )      
+                SELECT
+                    STR_TO_DATE(#{batchParam},'%Y%m%d')    STAT_DATE,
+                    STATION_ID,
+                    IFNULL(RENT_CNT, 0) RENT_CNT,
+                    IFNULL(RETURN_CNT, 0) RETURN_CNT
+                FROM 
+                (
+                  SELECT
+                     STATION_ID,
+                     SUM(RENT_CNT)AS RENT_CNT,
+                     SUM(RETURN_CNT) AS RETURN_CNT
+                  FROM 
+                  (
+                      SELECT
+                          IFNULL(A.RENT_STATION_ID, '0') STATION_ID, /* 대여대여소ID 없는 경우 0으로 변경 */
+                          COUNT(*) RENT_CNT,
+                          0 AS RETURN_CNT
+                      FROM TB_SVC_RENT_HIST A
+                      WHERE A.RENT_DTTM BETWEEN STR_TO_DATE(#{batchParam},'%Y%m%d  %H%i%s') AND (STR_TO_DATE(#{batchParam},'%Y%m%d') + INTERVAL 1 DAY - INTERVAL 1 SECOND)
+                       AND A.RENT_HIST_SEQ  IN ( SELECT RENT_HIST_SEQ FROM TB_SVC_RENT_HIST X1
+                                                   WHERE X1.RENT_HIST_SEQ = A.RENT_HIST_SEQ
+                                                     AND (  A.USE_MI >= 2
+                                                           OR (A.USE_MI < 2 AND X1.RENT_STATION_ID <> X1.RETURN_STATION_ID ) 
+                                                          )
+                                                )
+                      GROUP BY DATE_FORMAT(A.RENT_DTTM, '%Y%m%d'), A.RENT_STATION_ID
+                      UNION ALL
+                      SELECT
+                          IFNULL(A.RETURN_STATION_ID, '0') STATION_ID,  /* 반납대여소ID 없는 경우 0으로 변경(강제반납) */
+                          0 AS RENT_CNT, 
+                          COUNT(*) RETURN_CNT
+                      FROM TB_SVC_RENT_HIST A
+                      WHERE A.RENT_DTTM BETWEEN STR_TO_DATE(#{batchParam},'%Y%m%d  %H%i%s') AND (STR_TO_DATE(#{batchParam},'%Y%m%d') + INTERVAL 1 DAY - INTERVAL 1 SECOND)
+                        AND A.RENT_HIST_SEQ  IN ( SELECT RENT_HIST_SEQ FROM TB_SVC_RENT_HIST X1
+                                                   WHERE X1.RENT_HIST_SEQ = A.RENT_HIST_SEQ
+                                                     AND (  A.USE_MI >= 2
+                                                           OR (A.USE_MI < 2 AND X1.RENT_STATION_ID <> X1.RETURN_STATION_ID ) 
+                                                          )
+                                                )
+                      GROUP BY DATE_FORMAT(A.RENT_DTTM, '%Y%m%d'), A.RETURN_STATION_ID
+                  ) B
+                  GROUP BY STATION_ID   
+                ) T1
+           ]]> 
+            </when>    
+            <when test='batchType == "STATS8"'>
+                <!--대여소 통계 - 월-->
+                INSERT INTO TB_STA_STATION_RENT_MM
+                (
+                    STAT_MM,
+                    STATION_ID,
+                    RENT_CNT,
+                    RETURN_CNT
+                )
+                SELECT
+                    DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+                    STATION_ID,
+                    SUM(RENT_CNT) RENT_CNT,
+                    SUM(RETURN_CNT) RETURN_CNT
+                FROM TB_STA_STATION_RENT_DD
+                WHERE STAT_DATE BETWEEN STR_TO_DATE(CONCAT(#{batchParam},'01'), '%Y%m%d') AND LAST_DAY(STR_TO_DATE(CONCAT(#{batchParam},'01'), '%Y%m%d'))
+                GROUP BY
+                    DATE_FORMAT(STAT_DATE, '%Y%m'),
+                    STATION_ID
+            </when>    
+            <when test='batchType == "STATS9"'>
+                <!--장애 통계 - 일-->
+                INSERT INTO TB_STA_FAULT_DD
+                (
+                    STAT_DATE,
+                    EQUIPMENT_CLS_CD,
+                    FAULT_CLS_CD,
+                    FAULT_CNT
+                )
+                SELECT
+                    DATE_FORMAT(A.REG_DTTM, '%Y%m%d') STAT_DATE,
+                    A.EQUIPMENT_CLS_CD,
+                    B.FAULT_CLS_CD,
+                    COUNT(*) FAULT_CNT
+                FROM TB_MTC_FAULT_INFO A, TB_MTC_FAULT_DETL B
+                WHERE A.REG_DTTM BETWEEN STR_TO_DATE(#{batchParam}, '%Y%m%d%H%i%s') AND STR_TO_DATE(CONCAT(#{batchParam},' 235959'), '%Y%m%d%H%i%s')
+                AND A.FAULT_SEQ = B.FAULT_SEQ
+                GROUP BY DATE_FORMAT(A.REG_DTTM, '%Y%m%d'), A.EQUIPMENT_CLS_CD, B.FAULT_CLS_CD
+            </when>    
+            <when test='batchType == "STATS10"'>
+                <!--장애 통계 - 월-->  
+                INSERT INTO TB_STA_FAULT_MM
+                (
+                    STAT_MM,
+                    EQUIPMENT_CLS_CD,
+                    FAULT_CLS_CD,
+                    FAULT_CNT
+                )
+                SELECT
+                    DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+                    EQUIPMENT_CLS_CD,
+                    FAULT_CLS_CD,
+                    SUM(FAULT_CNT) FAULT_CNT
+                FROM TB_STA_FAULT_DD
+                WHERE STAT_DATE BETWEEN STR_TO_DATE(CONCAT(#{batchParam},'01'), '%Y%m%d') AND LAST_DAY(STR_TO_DATE(CONCAT(#{batchParam},'01'), '%Y%m%d'))
+                GROUP BY
+                    DATE_FORMAT(STAT_DATE, '%Y%m'),
+                    EQUIPMENT_CLS_CD,
+                    FAULT_CLS_CD  
+            </when>    
+            <when test='batchType == "STATS11"'>
+                <!--수리 통계 - 월-->   
+                INSERT INTO TB_STA_REPAIR_DD
+                (
+                    STAT_DATE,
+                    EQUIPMENT_CLS_CD,
+                    REPAIR_CLS_CD,
+                    REPAIR_CNT
+                )
+                SELECT
+                    DATE_FORMAT(A.REG_DTTM, '%Y%m%d') STAT_DATE,
+                    A.EQUIPMENT_CLS_CD,
+                    B.REPAIR_CLS_CD,
+                    COUNT(*) REPAIR_CNT
+                FROM TB_MTC_REPAIR_INFO A, TB_MTC_REPAIR_DETL B
+                WHERE A.REG_DTTM BETWEEN STR_TO_DATE(#{batchParam}, '%Y%m%d%H%i%s') AND STR_TO_DATE(CONCAT(#{batchParam},' 235959'), '%Y%m%d%H%i%s')
+                AND A.REPAIR_SEQ = B.REPAIR_SEQ
+                GROUP BY
+                    DATE_FORMAT(A.REG_DTTM, '%Y%m%d'),
+                    A.EQUIPMENT_CLS_CD,
+                    B.REPAIR_CLS_CD
+            </when>    
+            <when test='batchType == "STATS12"'>
+                <!--수리 통계 -일-->
+                INSERT INTO TB_STA_REPAIR_MM
+                (
+                    STAT_MM,
+                    EQUIPMENT_CLS_CD,
+                    REPAIR_CLS_CD,
+                    REPAIR_CNT
+                )
+                SELECT
+                    DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+                    EQUIPMENT_CLS_CD,
+                    REPAIR_CLS_CD,
+                    SUM(REPAIR_CNT) REPAIR_CNT
+                FROM TB_STA_REPAIR_DD
+                WHERE STAT_DATE BETWEEN STR_TO_DATE(CONCAT(#{batchParam},'01'), '%Y%m%d') AND LAST_DAY(STR_TO_DATE(CONCAT(#{batchParam},'01'), '%Y%m%d'))
+                GROUP BY
+                    DATE_FORMAT(STAT_DATE, '%Y%m'),
+                    EQUIPMENT_CLS_CD,
+                    REPAIR_CLS_CD
+            </when>    
+            <when test='batchType == "STATS13"'>
+               <!--결제 통계 -일-->
+               INSERT INTO TB_STA_PAYMENT_DD
+                (
+                    STAT_DATE,
+                    PAYMENT_CLS_CD,
+                    PAYMENT_AMT
+                )
+                SELECT
+                    DATE_FORMAT(A.PAYMENT_DTTM, '%Y%m%d') STAT_DATE,
+                    A.PAYMENT_CLS_CD,
+                    SUM(A.TOT_AMT) PAYMENT_AMT
+                FROM TB_SVC_PAYMENT A
+                WHERE A.PAYMENT_DTTM BETWEEN STR_TO_DATE(#{batchParam}, '%Y%m%d%H%i%s') AND STR_TO_DATE(CONCAT(#{batchParam},' 235959'), '%Y%m%d%H%i%s')
+                GROUP BY
+                    DATE_FORMAT(A.PAYMENT_DTTM, '%Y%m%d'),
+                    A.PAYMENT_CLS_CD
+            </when>    
+            <when test='batchType == "STATS14"'>
+                <!--결제 통계 -월-->
+                INSERT INTO TB_STA_PAYMENT_MM
+                (
+                    STAT_MM,
+                    USR_CLS_CD,
+                    PAYMENT_AMT
+                )
+                SELECT
+                    DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+                    USR_CLS_CD,
+                    SUM(PAYMENT_AMT) PAYMENT_AMT
+                FROM TB_STA_PAYMENT_DD
+                WHERE STAT_DATE BETWTEEN STR_TO_DATE(CONCAT(#{batchParam},'01'), '%Y%m%d') AND LAST_DAY(STR_TO_DATE(CONCAT(#{batchParam},'01'), '%Y%m%d'))
+                GROUP BY DATE_FORMAT(STAT_DATE, '%Y%m'), USR_CLS_CD
+            </when>    
+            <when test='batchType == "STATS15"'>
+                 <![CDATA[    
+                  INSERT INTO TB_STA_FOREIGN_RENT_DD
+                    (
+                        STAT_DATE,
+                        STATION_ID,
+                        RENT_CNT,
+                        RETURN_CNT
+                    )
+                    SELECT
+                        STR_TO_DATE(#{batchParam},'%Y%m%d')  STAT_DATE,
+                        STATION_ID,
+                        IFNULL(RENT_CNT, 0) RENT_CNT,
+                        IFNULL(RETURN_CNT, 0) RETURN_CNT
+                    FROM
+                    (
+                      SELECT
+                         STATION_ID,
+                         SUM(RENT_CNT) AS RENT_CNT,
+                         SUM(RETURN_CNT) AS RETURN_CNT
+                      FROM 
+                      (
+                          SELECT
+                              IFNULL(A.RENT_STATION_ID, '0') STATION_ID, /* 대여대여소ID 없는 경우 0으로 변경 */
+                              COUNT(*) RENT_CNT,
+                              0 AS RETURN_CNT
+                          FROM TB_SVC_RENT_HIST A, TB_SVC_USR B
+                          WHERE A.RENT_DTTM  BETWEEN STR_TO_DATE(#{batchParam},'%Y%m%d  %H%i%s') AND (STR_TO_DATE(#{batchParam},'%Y%m%d') + INTERVAL 1 DAY - INTERVAL 1 SECOND)
+                            AND A.USR_SEQ = B.USR_SEQ
+                            AND B.USR_CLS_CD = 'USR_002'
+                            AND A.RENT_HIST_SEQ  IN ( SELECT RENT_HIST_SEQ FROM TB_SVC_RENT_HIST X1
+                                                       WHERE X1.RENT_HIST_SEQ = A.RENT_HIST_SEQ
+                                                         AND (  A.USE_MI >= 2
+                                                               OR (A.USE_MI < 2 AND X1.RENT_STATION_ID <> X1.RETURN_STATION_ID ) 
+                                                              )
+                                                     )
+                          GROUP BY DATE_FORMAT(A.RENT_DTTM, '%Y%m%d'), A.RENT_STATION_ID
+                          UNION ALL
+                          SELECT
+                              IFNULL(A.RETURN_STATION_ID, '0') STATION_ID,  /* 반납대여소ID 없는 경우 0으로 변경(강제반납) */
+                              0 AS RENT_CNT,
+                              COUNT(*) RETURN_CNT
+                          FROM TB_SVC_RENT_HIST A, TB_SVC_USR B
+                          WHERE A.RENT_DTTM  BETWEEN STR_TO_DATE(#{batchParam},'%Y%m%d  %H%i%s') AND (STR_TO_DATE(#{batchParam},'%Y%m%d') + INTERVAL 1 DAY - INTERVAL 1 SECOND)
+                            AND A.USR_SEQ = B.USR_SEQ
+                            AND B.USR_CLS_CD = 'USR_002'
+                            AND A.RENT_HIST_SEQ  IN ( SELECT RENT_HIST_SEQ FROM TB_SVC_RENT_HIST X1
+                                                       WHERE X1.RENT_HIST_SEQ = A.RENT_HIST_SEQ
+                                                         AND (  A.USE_MI >= 2
+                                                               OR (A.USE_MI < 2 AND X1.RENT_STATION_ID <> X1.RETURN_STATION_ID ) 
+                                                              )
+                                                     )
+                          GROUP BY DATE_FORMAT(A.RENT_DTTM, '%Y%m%d'), A.RETURN_STATION_ID
+                       ) B
+                       GROUP BY STATION_ID  
+                    ) T1
+                ]]>    
+            </when>    
+            <otherwise>
+                <!--외국인 대여 통계 - 월-->
+                INSERT INTO TB_STA_FOREIGN_RENT_MM
+                (
+                    STAT_MM,
+                    STATION_ID,
+                    RENT_CNT,
+                    RETURN_CNT
+                )
+                SELECT
+                    DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+                    STATION_ID,
+                    SUM(RENT_CNT) RENT_CNT,
+                    SUM(RETURN_CNT) RETURN_CNT
+                FROM TB_STA_FOREIGN_RENT_DD
+                WHERE STAT_DATE BETWEEN STR_TO_DATE(CONCAT(#{batchParam},'01'), '%Y%m%d') AND LAST_DAY(STR_TO_DATE(CONCAT(#{batchParam},'01'), '%Y%m%d'))
+                GROUP BY DATE_FORMAT(STAT_DATE, '%Y%m'), STATION_ID
+            </otherwise>    
+        </choose>    
+    </insert>
+</mapper>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	<!-- <entry key="reSendSMS_Trigger">0 */3 * * * ?</entry> -->
+	<entry key="reSendSMS_Trigger">0 0 0 * * ?</entry>
+	<entry key="bookingCancel_Trigger">0 */1 * * * ?</entry><!--임시예약 취소	1분간격-->
+	<entry key="rentCancel_Trigger">0 */1 * * * ?</entry><!--예약 취소 1분간격-->
+	<entry key="guestRemove_Trigger">0 */1 * * * ?</entry><!--비회원 처리 1분간격-->
+	<entry key="transDBToSendFile_Trigger">0 0 23 * * ?</entry>
+	<entry key="transRecvFileToDB_Trigger">0 0 23 * * ?</entry>
+	<entry key="tmoneyTcpServer_Trigger">0 0 23 * * ?</entry>
+	<entry key="tmoneyTcpClient_Trigger">0 0 14 * * ?</entry>
+	<entry key="pushMessage_Trigger">0 */2 * * * ?</entry><!--대여종료 처리(대여 종료 10분전 알림)2분 간격-->
+	<entry key="deviceError_Trigger">0 */10 * * * ?</entry><!--장애처리(자전거 베터리) 10분 간격-->
+	<entry key="deviceIotError_Trigger">0 */3 * * * ?</entry><!--장애처리(ERR_004) 매일 04시30분-->
+	<entry key="infoColect_Trigger">0 0 6 * * ?</entry><!--회원 재동의자 처리 (매일06:00)	-->
+	<entry key="autoPay_Trigger">0 */2 * * * ?</entry><!--초과요금결제(2분간격)-->
+	<entry key="refund_Trigger">0 0 4 * * ?</entry><!--보증금 취소 매일 04시00분-->
+	<entry key="refundVoucher_Trigger">0 0 4 * * ?</entry><!--보증금 취소 매일 04시00분-->
+	<entry key="regularChk_Trigger">0 30 4 * * ?</entry><!---장애처리(정기점검일시) 매일 04시30분-->
+	<entry key="tmoneyStatusChk_Trigger">0 */5 * * * ?</entry><!---티머니 결재 상태 배치 5분간격-->
+	<entry key="bikeRobAlarm_Trigger">0 */3 * * * ?</entry><!---도난 경고 3분간격-->
+	<!-- <entry key="voucherEndAlarm_Trigger">0 30 10 * * ?</entry> --><!---정기권종료 이전문자전송 매일 12시00분-->
+	<entry key="periodTenMinuteErrorAlarm_Trigger">0 */9 * * * ?</entry><!-- 주기적인 상태보고 10분동안 안올리면... _20161118_JJH -->
+	
+	<!--추가 2015-12-15  -->
+    <entry key="blackListDel_Trigger">0 0 3 * * ?</entry><!--블랙 리스트 매일 03:00-->
+    <!--추가 2015-12-15  -->
+	<!--통계-->
+	<!--추가 2015-12-15  -->
+    <entry key="bikeUseRank_Trigger">0 0 3 2 * ?</entry><!--매월 2일 03:00-->
+    <!--추가 2015-12-15  -->
+	<entry key="bikeUseHH_Trigger">0 0 1 * * ?</entry><!--매일 01:00-->
+	<entry key="bikeUseDD_Trigger">0 0 2 * * ?</entry><!--매일 02:00-->
+	<entry key="bikeUseMM_Trigger">0 20 2 2 * ?</entry><!--매월 2일 02:20-->
+	
+	<entry key="newMbDD_Trigger">0 10 1 * * ?</entry><!--매일 01:10-->
+	<entry key="newMbMM_Trigger">0 25 2 1 * ?</entry><!--매월 1일 02:25-->
+	<entry key="stationGrpMoveDD_Trigger">0 20 1 * * ?</entry><!--매일 01:20-->
+	<entry key="stationGrpMoveMM_Trigger">0 30 2 1 * ?</entry><!--매월 1일 02:30-->
+	<entry key="stationRentDD_Trigger">0 30 1 * * ?</entry><!--매일 01:30-->
+	<entry key="stationRentMM_Trigger">0 35 2 1 * ?</entry><!--매월 1일 02:35-->
+	<entry key="faultDD_Trigger">0 40 1 * * ?</entry><!--매일 01:40-->
+	<entry key="faultMM_Trigger">0 40 2 1 * ?</entry><!--매월 1일 02:40-->
+	<entry key="refairDD_Trigger">0 0 2 * * ?</entry><!--매일 02:00-->
+	<entry key="refairMM_Trigger">0 50 2 1 * ?</entry><!--매월 1일 02:50-->
+	<entry key="paymentDD_Trigger">0 50 1 * * ?</entry><!--매일 01:50-->
+	<entry key="paymentMM_Trigger">0 45 2 1 * ?</entry><!--매월 1일 02:45-->
+	<entry key="foreignRentDD_Trigger">0 10 2 * * ?</entry><!--매일 02:10-->
+	<entry key="foreignRentMM_Trigger">0 55 2 1 * ?</entry><!--매월 1일 02:55-->
+	<entry key="operationMaxBikeDD_Trigger">0 0 */1 * * ?</entry><!-- 매일 1시간 간격 -->
+	<!-- 추가 2017-01-13_JJH -->
+	<entry key="BikeBatteryDD_Trigger">0 0 4 * * ?</entry><!-- 매일 04:00 -->
+	
+	<!-- 추가 2017-02-13_JJH -->
+	<entry key="recommendTimePolicy_Trigger">0 29 14 * * ?</entry><!-- 추천반납대여소 일 별/시간대 별 대여/반납 정책 Row 생성 매일 00:00 -->
+	<entry key="recommendWeeklyPolicy_Trigger">0 17 15 ? * 1</entry><!-- 추천반납대여소 주간 정책 Row 생성 매주 월요일 00:00 -->
+	
+	
+	<entry key="dropPartition_Trigger">0 0 5 * * ?</entry>
+	<entry key="createDailyPartition_Trigger">0 30 6 * * ?</entry>
+	<entry key="createDailyPartitionWithToDays_Trigger">0 30 6 * * ?</entry>
+	<entry key="createMonthPartition_Trigger">0 30 6 * * ?</entry>
+	<entry key="createMonthPartitionWithToDays_Trigger">0 30 6 * * ?</entry>
+	<entry key="deleteLog_Trigger">0 30 5 * * ?</entry>
+	
+	<!-- 추가 2017-05-19_JJH -->
+<!-- 	<entry key="deleteSerialNo_Trigger">0 */1 * * * ?</entry>1분마다 -->
+	<entry key="deleteSerialNo_Trigger">0 0 0 1 * ?</entry><!-- 1분마다 -->
+</properties>

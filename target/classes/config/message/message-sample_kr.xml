@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+	<entry key="sample.title.availableLanguages">사용가능한 언어 목록</entry>
+
+	<entry key="sample.language.ko">한국어</entry>
+	<entry key="sample.language.en">영어</entry>
+
+</properties>

@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<project name="SFTP" basedir="." default="all">
+
+	<property name="hostname">125.133.65.245</property>
+    <property name="username">mkkang</property>
+    <property name="password">dki1234</property>
+    <property name="port">2222</property>
+ 
+    <taskdef name="ssh"
+             classname="com.sshtools.ant.Ssh" />
+             <!-- classpath="D:\\maverick-ant.jar" --> 
+             
+    <target name="all" depends="ssh_dev_deploy1, test_target " />
+ 
+    <target name="ssh_dev_deploy1">
+        <ssh host="${hostname}"
+             username="${username}"
+             password="${password}"
+             port="${port}"
+             version="2"
+             >
+            <sftp action="put" remotedir="/home/mkkang" verbose="true">
+                <fileset dir="./target" >
+                    <include name="**/*.java" />
+                    <include name="**/*.properties" />
+                </fileset>
+            </sftp>
+            
+            <exec cmd="touch test.txt" /> <!-- <exec cmd="/home/mkkang/tomcat/bin/catalina.sh stop" /> -->
+            <exec cmd="touch test.txt2" /> <!-- <exec cmd="/home/mkkang/tomcat/bin/catalina.sh start" /> -->
+        </ssh>
+    </target>
+    
+    <target name="test_target">
+    	<ssh host="${hostname}"
+             username="${username}"
+             password="${password}"
+             port="${port}"
+             version="2"
+             >
+             <exec cmd="/home/mkkang/tomcat/bin/catalina.sh stop" />
+             <exec cmd="/home/mkkang/tomcat/bin/catalina.sh start" />
+        </ssh>
+    </target>
+</project>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" packages="com.dkitec.cfood.logging, org.fincl.miss.server.logging.logger">
+	<Appenders>
+
+		<Console name="console" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%-5level] %msg%n"/>
+		</Console>
+		
+		<DirectRollingFile name="service">
+			<FilePattern>/log/miss/app/service/service.%d{yyyy-MM-dd}.log</FilePattern>
+			<SeparatedValuesLayout separator="|" namesticker="=">
+				<StringValue name="LOG_ID"/>
+				<DateValue name="REQ_TIME" property="REQUEST_TIME" pattern="yyyyMMddhhmmssSSS"/>
+				<DateValue name="RSP_TIME" property="RESPONSE_TIME" pattern="yyyyMMddhhmmssSSS"/>
+				<StringValue name="CATE" property="REQUEST_CATEGORY"/>
+				<StringValue name="NAME" property="REQUEST_NAME"/>
+				<StringValue name="URI" property="REQUEST_URI"/>
+				<StringValue name="ERR_CD" property="ERROR_CODE"/>
+				<StringValue name="ERR_MSG" property="ERROR_MESSAGE"/>
+				<NumberValue name="ELAPSED" property="ELAPSED_TIME" pattern="#,##0.000"/>
+			</SeparatedValuesLayout>
+			<SteadyIntervalTriggeringPolicy interval="1" timeUnit="days"/>
+		</DirectRollingFile>
+		
+		<DirectRollingFile name="ERROR">
+			<FilePattern>/log/miss/app/service/ERROR.%d{yyyy-MM-dd}.log</FilePattern>
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%-5level] %msg%n"/>
+			<SteadyIntervalTriggeringPolicy interval="1" timeUnit="days"/>
+		</DirectRollingFile>
+			
+		<!-- 서비스별 레벨 조정 필터 적용된 어펜더 -->
+		<DirectRollingFile name="serviceMapping">
+			<FilePattern>/log/miss/app/service/serviceMapping.%d{yyyy-MM-dd}.log</FilePattern>
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%-5level] %msg%n"/>
+			<SteadyIntervalTriggeringPolicy interval="1" timeUnit="days"/>
+			<Filters>
+				<ServiceLogLevelFilter key="server.service" onMatch="ACCEPT" onMismatch="DENY">
+				</ServiceLogLevelFilter>
+			</Filters>
+		</DirectRollingFile>
+		
+		<!-- 클라이언트 아이디별 로그 파일 작성 어펜더 -->
+		<Routing name="clientTracing">
+			<Routes pattern="$${ctx:server.client}">
+				<!-- ThreadContext에 server.client 키로 값이 없을 때 -->
+				<Route key="$${ctx:server.client}">
+					<DirectRollingFile name="client-anonymous">
+						<FilePattern>/log/miss/app/service/user/anonymous/%d{yyyy-MM-dd}.log</FilePattern>
+						<PatternLayout pattern="%d{HH:mm:ss.SSS} [%-5level] %msg%n"/>
+						<SteadyIntervalTriggeringPolicy interval="1" timeUnit="days"/>
+					</DirectRollingFile>
+				</Route>
+				<!-- ThreadContext에 server.client 키로 값이 있을 때 -->
+				<Route>
+					<DirectRollingFile name="client-${ctx:server.client}">
+						<FilePattern>/log/miss/app/service/user/${ctx:server.client}/%d{yyyy-MM-dd}.log</FilePattern>
+						<PatternLayout pattern="%d{HH:mm:ss.SSS} [%-5level] %msg%n"/>
+						<SteadyIntervalTriggeringPolicy interval="1" timeUnit="days"/>
+					</DirectRollingFile>
+				</Route>
+			</Routes>
+		</Routing>
+		
+	</Appenders>
+	
+	
+	<Loggers>
+	
+		<Root level="INFO">
+			<AppenderRef ref="console"/>
+		</Root>
+		
+		<Logger name="service" level="DEBUG" additivity="FALSE">
+			<AppenderRef ref="service"/>
+		</Logger>
+		
+		<Logger name="ERROR" level="ERROR">
+			<AppenderRef ref="ERROR"/>
+		</Logger>
+		
+		<Logger name="org.fincl" level="DEBUG" additivity="FALSE">
+			<AppenderRef ref="console"/>
+		</Logger>
+		
+		<Logger name="org.fincl.miss.service.biz" level="ALL" additivity="FALSE">
+			<AppenderRef ref="serviceMapping"/>	<!-- 서비스별 레벨 조정 필터 적용된 어펜더 -->
+			<AppenderRef ref="clientTracing"/> 	<!-- 클라이언트 아이디별 로그 파일 작성 어펜더 -->
+			<AppenderRef ref="console"/> <!-- 개발할때는 console 추가 -->
+		</Logger>
+		
+		<Logger name="io.netty" level="DEBUG" additivity="FALSE">
+			<AppenderRef ref="console"/>
+		</Logger>
+		
+	</Loggers>
+</Configuration>

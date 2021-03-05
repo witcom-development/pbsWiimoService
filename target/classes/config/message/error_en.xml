@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	<entry key="0000">Success</entry>
+	<entry key="1001">Bad Request</entry>
+	<entry key="9999">Undefined Error</entry>
+</properties>

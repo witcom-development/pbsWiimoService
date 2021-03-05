@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans 
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd">
+        
+   	<context:component-scan base-package="org.fincl.miss" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		<context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice" />
+	</context:component-scan>
+
+	<bean id="beanNameUrlMapper" class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping">
+		<property name="order" value="2" />
+	</bean>
+
+	<bean id="remoteChannelControlService" class="org.fincl.miss.server.remote.RemoteChannelControlServiceHandler" lazy-init="true"/>
+
+	<bean name="/remoteChannelControlService" class="org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter">
+		<property name="service" ref="remoteChannelControlService" />
+		<property name="serviceInterface" value="org.fincl.miss.core.remote.server.RemoteChannelControlService"/>
+	</bean>
+	
+	<bean id="remoteServiceControlService" class="org.fincl.miss.server.remote.RemoteServiceControlServiceHandler" lazy-init="true"/>
+
+	<bean name="/remoteServiceControlService" class="org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter">
+		<property name="service" ref="remoteServiceControlService" />
+		<property name="serviceInterface" value="org.fincl.miss.core.remote.server.RemoteServiceControlService"/>
+	</bean>
+	
+	<bean id="remoteMessageParserService" class="org.fincl.miss.server.remote.RemoteMessageParserServiceHandler" lazy-init="true"/>
+
+	<bean name="/remoteMessageParserService" class="org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter">
+		<property name="service" ref="remoteMessageParserService" />
+		<property name="serviceInterface" value="org.fincl.miss.core.remote.server.RemoteMessageParserService"/>
+	</bean>
+	
+	<bean id="remoteSendMessageService" class="org.fincl.miss.server.remote.RemoteSendMessageServiceHandler" lazy-init="true"/>
+
+	<bean name="/remoteSendMessageService" class="org.springframework.remoting.httpinvoker.HttpInvokerServiceExporter">
+		<property name="service" ref="remoteSendMessageService" />
+		<property name="serviceInterface" value="org.fincl.miss.core.remote.server.RemoteSendMessageService"/>
+	</bean>
+	
+	<bean class="org.fincl.miss.core.context.ApplicationContextSupport" />
+</beans>

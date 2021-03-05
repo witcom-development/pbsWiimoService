@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.scheduler.job.period.service.PeriodTenMinuteErrorMapper">
+    <!-- <select id="getPeriodTenMinuteErrorList" resultType="org.fincl.miss.server.scheduler.job.period.vo.PeriodTenMinuteErrorVO">
+    <![CDATA[  
+    	SELECT B.BIKE_ID AS bike_id,
+			   B.BIKE_NO AS bike_no,
+			   B.BIKE_STUS_CD AS bike_stus_cd,
+			   B.BIKE_BATTERY_STUS_CD AS bike_battery_stus_cd,
+			   R.NOW_LOCATE_ID AS now_locate_id,
+			   P.RACK_ID AS rack_id,
+			   P.CASCADE_YN AS cascade_yn,
+			   P.CASCADE_BIKE_ID AS cascade_bike_id,
+			   D.LAST_CONN_DTTM AS last_conn_dttm
+		FROM TB_OPR_BIKE B LEFT JOIN TB_IOT_DEVICE D ON B.BIKE_ID = D.DEVICE_ID
+		   LEFT JOIN TB_OPR_BIKE_PARKING P ON B.BIKE_ID = P.BIKE_ID
+		   LEFT JOIN TB_OPR_RACK R ON P.RACK_ID = R.RACK_ID
+		WHERE 1=1
+		AND B.BIKE_BATTERY_STUS_CD IS NOT NULL
+		AND B.BIKE_BATTERY_STUS_CD != ''
+		AND CENTER_ID IS NULL
+		AND BIKE_STUS_CD IN ('BKS_003', 'BKS_008')
+		AND D.LAST_CONN_DTTM + INTERVAL 10 MINUTE < NOW()
+		ORDER BY D.LAST_CONN_DTTM ASC;
+	
+	 ]]>  
+    </select> -->
+    
+    <!-- <select id="getPeriodTenMinuteErrorList" resultType="org.fincl.miss.server.scheduler.job.period.vo.PeriodTenMinuteErrorVO">
+    <![CDATA[  
+    	SELECT B.BIKE_ID AS bike_id,
+			   B.BIKE_NO AS bike_no,
+			   B.BIKE_STUS_CD AS bike_stus_cd,
+			   B.BIKE_BATTERY_STUS_CD AS bike_battery_stus_cd,
+			   R.NOW_LOCATE_ID AS now_locate_id,
+			   P.RACK_ID AS rack_id,
+			   P.CASCADE_YN AS cascade_yn,
+			   P.CASCADE_BIKE_ID AS cascade_bike_id,
+			   D.LAST_CONN_DTTM AS last_conn_dttm
+		FROM TB_OPR_BIKE B LEFT JOIN TB_IOT_DEVICE D ON B.BIKE_ID = D.DEVICE_ID
+		   LEFT JOIN TB_OPR_BIKE_PARKING P ON B.BIKE_ID = P.BIKE_ID
+		   LEFT JOIN TB_OPR_RACK R ON P.RACK_ID = R.RACK_ID
+		WHERE 1=1
+		AND B.BIKE_BATTERY_STUS_CD IS NOT NULL
+		AND B.BIKE_BATTERY_STUS_CD != ''
+		AND CENTER_ID IS NULL
+		AND BIKE_STUS_CD IN ('BKS_003', 'BKS_008')
+		AND D.LAST_CONN_DTTM + INTERVAL 10 MINUTE > NOW()
+		ORDER BY D.LAST_CONN_DTTM ASC;
+	
+	 ]]>  
+    </select> -->
+    <select id="getPeriodTenMinuteErrorList" resultType="org.fincl.miss.server.scheduler.job.period.vo.PeriodTenMinuteErrorVO">
+    <![CDATA[  
+    	SELECT B.BIKE_ID AS bike_id,
+			   B.BIKE_NO AS bike_no,
+			   B.BIKE_STUS_CD AS bike_stus_cd,
+			   B.BIKE_BATTERY_STUS_CD AS bike_battery_stus_cd,
+			   R.NOW_LOCATE_ID AS now_locate_id,
+			   P.RACK_ID AS rack_id,
+			   P.CASCADE_YN AS cascade_yn,
+			   P.CASCADE_BIKE_ID AS cascade_bike_id,
+			   D.LAST_CONN_DTTM AS last_conn_dttm
+		FROM TB_OPR_BIKE B LEFT JOIN TB_IOT_DEVICE D ON B.BIKE_ID = D.DEVICE_ID
+		   LEFT JOIN TB_OPR_BIKE_PARKING P ON B.BIKE_ID = P.BIKE_ID
+		   LEFT JOIN TB_OPR_RACK R ON P.RACK_ID = R.RACK_ID
+		WHERE 1=1
+		AND D.LAST_CONN_DTTM + INTERVAL 10 MINUTE > NOW()
+		ORDER BY D.LAST_CONN_DTTM ASC;
+	
+	 ]]>  
+    </select>
+    
+    
+    <insert id="insertPeriodTenMinuteErrorList"  parameterType="org.fincl.miss.server.scheduler.job.period.vo.PeriodTenMinuteErrorVO">
+    	INSERT INTO TB_OPR_PERIOD_10MIN_ERROR
+    		(BIKE_ID, BIKE_NO, BIKE_STUS_CD, BIKE_BATTERY_STUS_CD, NOW_LOCATE_ID, RACK_ID, CASCADE_YN, CASCADE_BIKE_ID, LAST_CONN_DTTM, REG_DTTM) 
+    	VALUES 
+    		(#{bike_id}, #{bike_no}, #{bike_stus_cd}, #{bike_battery_stus_cd}, #{now_locate_id}, #{rack_id}, #{cascade_yn}, #{cascade_bike_id}, #{last_conn_dttm}, NOW())
+    </insert>
+</mapper>

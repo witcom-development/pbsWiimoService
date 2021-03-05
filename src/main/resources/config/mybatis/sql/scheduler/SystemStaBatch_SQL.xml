@@ -1,0 +1,726 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.scheduler.job.systemStats.service.BikeSystemStatsMapper">
+    <!--
+        TB_STA_BIKE_USE_HH
+        운동량, CO2량, 이동거리, 이용시간  SUM 하면 되는지 확인 필요.
+    -->
+    <insert id="insertTB_STA_BIKE_USE_HH">
+    <![CDATA[    
+        INSERT INTO TB_STA_BIKE_USE_HH
+		(
+		    STAT_DATE,
+		    STAT_HH,
+		    RENT_CLS_CD,
+		    SEX_CD,
+		    AGES_CD,
+		    STATION_ID,
+		    USE_CNT,
+		    MVM_QUNT,
+		    CO2_QUNT,
+		    MOVE_DIST,
+		    USE_MI
+		)
+		SELECT
+		    STAT_DATE
+		  , STAT_HH
+		  , RENT_CLS_CD
+		  , SEX_CD
+		  , AGES_CD
+		  , RENT_STATION_ID
+		  , COUNT(*) USE_CNT
+		  , SUM(CONSUME_CAL) CONSUME_CAL
+		  , SUM(REDUCE_CO2) REDUCE_CO2
+		  , SUM(MOVE_DIST) MOVE_DIST
+		  , SUM(USE_MI) USE_MI
+		FROM
+		(
+		   SELECT
+		        DATE_FORMAT(A.RENT_DTTM, '%Y%m%d') STAT_DATE,
+		        DATE_FORMAT(A.RENT_DTTM, '%H') STAT_HH,
+		        CASE
+					WHEN A.RENT_CLS_CD = 'RCC_006'
+					THEN 'RCC_001'
+					ELSE (CASE
+							 WHEN A.RENT_CLS_CD = 'RCC_005'
+							 THEN (CASE
+							 			WHEN B.USR_CLS_CD = 'USR_001'
+							 			THEN 'RCC_002'
+							 			ELSE 'RCC_003'
+									END)
+							 ELSE A.RENT_CLS_CD
+							 END)
+				END AS RENT_CLS_CD,
+		        B.SEX_CD,
+		        CASE
+		            WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', B.USR_BIRTH_DATE))) BETWEEN 0  AND 19 THEN 'AGE_001'
+		            WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', B.USR_BIRTH_DATE))) BETWEEN 20 AND 29 THEN 'AGE_002'
+		            WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', B.USR_BIRTH_DATE))) BETWEEN 30 AND 39 THEN 'AGE_003'
+		            WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', B.USR_BIRTH_DATE))) BETWEEN 40 AND 49 THEN 'AGE_004'
+		            WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', B.USR_BIRTH_DATE))) BETWEEN 50 AND 59 THEN 'AGE_005'
+		            WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', B.USR_BIRTH_DATE))) BETWEEN 60 AND 69 THEN 'AGE_006'
+		            WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', B.USR_BIRTH_DATE))) BETWEEN 70 AND 100 THEN 'AGE_007'
+		            ELSE 'AGE_008'
+		        END AGES_CD,
+		        RENT_STATION_ID,
+		        IFNULL(CONSUME_CAL, 0) CONSUME_CAL,
+		        IFNULL(REDUCE_CO2,  0) REDUCE_CO2,
+		        IFNULL(USE_DIST, 0) MOVE_DIST,
+		        IFNULL(USE_MI, 0) USE_MI
+		    FROM TB_SVC_RENT_HIST A LEFT OUTER JOIN TB_SVC_USR B ON A.USR_SEQ = B.USR_SEQ
+		    WHERE RENT_DTTM BETWEEN  CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -2 DAY), '%Y%m%d'),'000000') AND CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -2 DAY), '%Y%m%d'),'235959')
+		    AND A.RENT_HIST_SEQ  IN ( SELECT RENT_HIST_SEQ FROM TB_SVC_RENT_HIST X1
+		                               WHERE X1.RENT_HIST_SEQ = A.RENT_HIST_SEQ
+		                                 AND (  A.USE_MI >= 2
+		                                       OR (A.USE_MI < 2 AND X1.RENT_STATION_ID <> X1.RETURN_STATION_ID ) 
+		                                      )
+		                            )
+		) A 
+		GROUP BY STAT_DATE, STAT_HH, RENT_CLS_CD, SEX_CD, AGES_CD, RENT_STATION_ID
+    ]]>        
+    </insert>    
+    <!--TB_STA_BIKE_USE_DD-->
+    <insert id="insertTB_STA_BIKE_USE_DD">
+        INSERT INTO TB_STA_BIKE_USE_DD
+            (
+                STAT_DATE,
+                RENT_CLS_CD,
+                SEX_CD,
+                AGES_CD,
+                STATION_ID,
+                USE_CNT,
+                MVM_QUNT,
+                CO2_QUNT,
+                MOVE_DIST,
+                USE_MI
+            )
+            SELECT
+                STAT_DATE,
+                RENT_CLS_CD,
+                SEX_CD,
+                AGES_CD,
+                STATION_ID,
+                SUM(USE_CNT) USE_CNT,
+                SUM(MVM_QUNT) MVM_QUNT,
+                SUM(CO2_QUNT) CO2_QUNT,
+                SUM(MOVE_DIST) MOVE_DIST,
+                SUM(USE_MI) USE_MI
+            FROM TB_STA_BIKE_USE_HH
+            WHERE STAT_DATE  = STR_TO_DATE(NOW(),'%Y-%m-%d') - INTERVAL 2 DAY 
+            GROUP BY STAT_DATE,
+                RENT_CLS_CD,
+                SEX_CD,
+                AGES_CD,
+                STATION_ID
+    </insert>    
+    <insert id="insertTB_STA_BIKE_USE_MM">
+        INSERT INTO TB_STA_BIKE_USE_MM
+            (
+                STAT_MM,
+                RENT_CLS_CD,
+                SEX_CD,
+                AGES_CD,
+                STATION_ID,
+                USE_CNT,
+                MVM_QUNT,
+                CO2_QUNT,
+                MOVE_DIST,
+                USE_MI
+            )
+            SELECT
+                DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+                RENT_CLS_CD,
+                SEX_CD,
+                AGES_CD,
+                STATION_ID,
+                SUM(USE_CNT) USE_CNT,
+                SUM(MVM_QUNT) MVM_QUNT,
+                SUM(CO2_QUNT) CO2_QUNT,
+                SUM(MOVE_DIST) MOVE_DIST,
+                SUM(USE_MI) USE_MI
+            FROM TB_STA_BIKE_USE_HH
+            WHERE STAT_DATE BETWEEN LAST_DAY(NOW() - INTERVAL 2 MONTH) +INTERVAL 1 DAY AND LAST_DAY(NOW() - INTERVAL 1 MONTH)
+            GROUP BY
+                DATE_FORMAT(STAT_DATE, '%Y%m'),
+                RENT_CLS_CD,
+                SEX_CD,
+                AGES_CD,
+                STATION_ID
+    </insert>    
+    
+    <!--/* 신규 회원 통계 일 */  -->
+    <insert id="insertTB_STA_NEW_MB_DD">
+        INSERT INTO TB_STA_NEW_MB_DD
+        (
+            STAT_DATE,
+            USR_CLS_CD,
+            AGES_CD,
+            SEX_CD,
+            NEW_MB_CNT
+        )
+        SELECT
+            STAT_DATE,
+            USR_CLS_CD,
+            AGES_CD,
+            SEX_CD,
+            COUNT(*) NEW_MB_CNT
+        FROM
+        (
+            SELECT
+                DATE_FORMAT(A.REG_DTTM, '%Y%m%d') STAT_DATE,
+                A.USR_CLS_CD,
+                CASE
+                    WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', A.USR_BIRTH_DATE))) BETWEEN 0  AND 19 THEN 'AGE_001'
+                    WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', A.USR_BIRTH_DATE))) BETWEEN 20 AND 29 THEN 'AGE_002'
+                    WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', A.USR_BIRTH_DATE))) BETWEEN 30 AND 39 THEN 'AGE_003'
+                    WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', A.USR_BIRTH_DATE))) BETWEEN 40 AND 49 THEN 'AGE_004'
+                    WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', A.USR_BIRTH_DATE))) BETWEEN 50 AND 59 THEN 'AGE_005'
+                    WHEN (YEAR(CURDATE()) - YEAR(dg_decrypt_date('TB_SVC_USR', 'USR_BIRTH_DATE', A.USR_BIRTH_DATE))) BETWEEN 60 AND 69 THEN 'AGE_006'
+                    ELSE 'AGE_007'
+                END AGES_CD,
+                A.SEX_CD
+            FROM TB_SVC_USR A
+            WHERE A.REG_DTTM BETWEEN CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 DAY), '%Y%m%d'),'000000') AND CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 DAY), '%Y%m%d'),'235959')
+            AND USR_CLS_CD IN ('USR_001')
+        ) A
+        GROUP BY STAT_DATE, USR_CLS_CD, AGES_CD, SEX_CD
+    </insert>   
+    <!--TB_STA_NEW_MB_MM-->   
+    <insert id="insertTB_STA_NEW_MB_MM">
+        INSERT INTO TB_STA_NEW_MB_MM
+        (
+            STAT_MM,
+            USR_CLS_CD,
+            AGES_CD,
+            SEX_CD,
+            NEW_MB_CNT
+        )
+        SELECT
+            DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+            USR_CLS_CD,
+            AGES_CD,
+            SEX_CD,
+            SUM(NEW_MB_CNT) NEW_MB_CNT
+        FROM TB_STA_NEW_MB_DD
+        WHERE STAT_DATE BETWEEN DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 MONTH), '%Y-%m-%d') AND DATE_FORMAT(DATE_ADD(LAST_DAY(NOW()), INTERVAL -1 MONTH), '%Y-%m-%d') 
+        GROUP BY
+            DATE_FORMAT(STAT_DATE, '%Y%m'),
+            USR_CLS_CD,
+            AGES_CD,
+            SEX_CD
+        
+    </insert>     
+    <insert id="insertTB_STA_STATION_GRP_MOVE_DD">
+     <![CDATA[        
+        INSERT INTO TB_STA_STATION_GRP_MOVE_DD
+           (
+                STAT_DATE,
+                RENT_STATION_GRP_SEQ,
+                RETURN_STATION_GRP_SEQ,
+                GRP_MOVE_CNT
+            )
+            SELECT STAT_DATE,
+            		 RENT_STATION_GRP_SEQ,
+            		 RETURN_STATION_GRP_SEQ,
+            		 SUM(GRP_MOVE_CNT)
+            FROM (
+          			SELECT  DATE_FORMAT(A.RENT_DTTM, '%Y%m%d') STAT_DATE,
+                  			IFNULL(B.STATION_GRP_SEQ, 0) AS RENT_STATION_GRP_SEQ,    /* 대여 그룹이 없는 경우 0으로 변경 */
+                  			IFNULL(C.STATION_GRP_SEQ, 0) AS RETURN_STATION_GRP_SEQ,  /* 반납 그룹이 없는 경우 0으로 변경(강제반납) */
+                  			COUNT(*) GRP_MOVE_CNT
+            		FROM TB_SVC_RENT_HIST A LEFT OUTER JOIN TB_OPR_STATION B ON A.RENT_STATION_ID = B.STATION_ID
+                         LEFT OUTER JOIN TB_OPR_STATION C ON A.RETURN_STATION_ID = C.STATION_ID
+            		WHERE A.RENT_DTTM BETWEEN CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -2 DAY), '%Y%m%d'),'000000') AND CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -2 DAY), '%Y%m%d'),'235959')
+              		AND A.RENT_HIST_SEQ  IN ( SELECT RENT_HIST_SEQ 
+              									FROM TB_SVC_RENT_HIST X1
+                                         	   WHERE X1.RENT_HIST_SEQ = A.RENT_HIST_SEQ
+                                           		 AND (  A.USE_MI >= 2
+                                                 OR (A.USE_MI < 2 AND X1.RENT_STATION_ID <> X1.RETURN_STATION_ID ) 
+                                                	)
+                                      		)
+             		GROUP BY DATE_FORMAT(A.RENT_DTTM, '%Y%m%d')
+                    		 ,B.STATION_GRP_SEQ
+                    		 ,C.STATION_GRP_SEQ  
+                 )A
+            GROUP BY STAT_DATE, RENT_STATION_GRP_SEQ, RETURN_STATION_GRP_SEQ    
+    ]]>
+    </insert>     
+    <insert id="insertTB_STA_STATION_GRP_MOVE_MM">
+        INSERT INTO TB_STA_STATION_GRP_MOVE_MM
+            (
+                STAT_MM,
+                RENT_STATION_GRP_SEQ,
+                RETURN_STATION_GRP_SEQ,
+                GRP_MOVE_CNT
+            )
+            SELECT
+                DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+                RENT_STATION_GRP_SEQ,
+                RETURN_STATION_GRP_SEQ,
+                SUM(GRP_MOVE_CNT) GRP_MOVE_CNT
+            FROM TB_STA_STATION_GRP_MOVE_DD
+            WHERE STAT_DATE BETWEEN LAST_DAY(NOW() - INTERVAL 2 MONTH) +INTERVAL 1 DAY AND LAST_DAY(NOW() - INTERVAL 1 MONTH)
+            GROUP BY
+                DATE_FORMAT(STAT_DATE, '%Y%m'),
+                RENT_STATION_GRP_SEQ,
+                RETURN_STATION_GRP_SEQ
+        
+    </insert>    
+    
+    <insert id="insertTB_STA_STATION_RENT_DD">
+    <![CDATA[    
+        INSERT INTO TB_STA_STATION_RENT_DD
+        (
+            STAT_DATE,
+            STATION_ID,
+            RENT_CNT,
+            RETURN_CNT
+        )      
+        SELECT
+            DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -2 DAY), '%Y%m%d') STAT_DATE,
+            STATION_ID,
+            IFNULL(RENT_CNT, 0) RENT_CNT,
+            IFNULL(RETURN_CNT, 0) RETURN_CNT
+        FROM 
+        (
+          SELECT
+             STATION_ID,
+             SUM(RENT_CNT)AS RENT_CNT,
+             SUM(RETURN_CNT) AS RETURN_CNT
+          FROM 
+          (
+              SELECT
+                  IFNULL(A.RENT_STATION_ID, '0') STATION_ID, /* 대여대여소ID 없는 경우 0으로 변경 */
+                  COUNT(*) RENT_CNT,
+                  0 AS RETURN_CNT
+              FROM TB_SVC_RENT_HIST A
+              WHERE A.RENT_DTTM BETWEEN CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -2 DAY), '%Y%m%d'),'000000') AND CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -2 DAY), '%Y%m%d'),'235959')
+               AND A.RENT_HIST_SEQ  IN ( SELECT RENT_HIST_SEQ FROM TB_SVC_RENT_HIST X1
+                                           WHERE X1.RENT_HIST_SEQ = A.RENT_HIST_SEQ
+                                             AND (  A.USE_MI >= 2
+                                                   OR (A.USE_MI < 2 AND X1.RENT_STATION_ID <> X1.RETURN_STATION_ID ) 
+                                                  )
+                                        )
+              GROUP BY DATE_FORMAT(A.RENT_DTTM, '%Y%m%d'), A.RENT_STATION_ID
+              UNION ALL
+              SELECT
+                  IFNULL(A.RETURN_STATION_ID, '0') STATION_ID,  /* 반납대여소ID 없는 경우 0으로 변경(강제반납) */
+                  0 AS RENT_CNT, 
+                  COUNT(*) RETURN_CNT
+              FROM TB_SVC_RENT_HIST A
+              WHERE A.RENT_DTTM BETWEEN CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -2 DAY), '%Y%m%d'),'000000') AND CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -2 DAY), '%Y%m%d'),'235959')
+                AND A.RENT_HIST_SEQ  IN ( SELECT RENT_HIST_SEQ FROM TB_SVC_RENT_HIST X1
+                                           WHERE X1.RENT_HIST_SEQ = A.RENT_HIST_SEQ
+                                             AND (  A.USE_MI >= 2
+                                                   OR (A.USE_MI < 2 AND X1.RENT_STATION_ID <> X1.RETURN_STATION_ID ) 
+                                                  )
+                                        )
+              GROUP BY DATE_FORMAT(A.RENT_DTTM, '%Y%m%d'), A.RETURN_STATION_ID
+          ) B
+          GROUP BY STATION_ID   
+        ) T1
+    ]]>    
+    </insert>     
+    <insert id="insertTB_STA_STATION_RENT_MM">
+         INSERT INTO TB_STA_STATION_RENT_MM
+        (
+            STAT_MM,
+            STATION_ID,
+            RENT_CNT,
+            RETURN_CNT
+        )
+        SELECT
+            DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+            STATION_ID,
+            SUM(RENT_CNT) RENT_CNT,
+            SUM(RETURN_CNT) RETURN_CNT
+        FROM TB_STA_STATION_RENT_DD
+        WHERE STAT_DATE BETWEEN LAST_DAY(NOW() - INTERVAL 2 MONTH) +INTERVAL 1 DAY AND LAST_DAY(NOW() - INTERVAL 1 MONTH) 
+        GROUP BY
+            DATE_FORMAT(STAT_DATE, '%Y%m'),
+            STATION_ID
+    </insert>   
+    <insert id="insertTB_STA_FAULT_DD">
+        INSERT INTO TB_STA_FAULT_DD
+        (
+            STAT_DATE,
+            EQUIPMENT_CLS_CD,
+            FAULT_CLS_CD,
+            FAULT_CNT
+        )
+        SELECT
+            DATE_FORMAT(A.REG_DTTM, '%Y%m%d') STAT_DATE,
+            A.EQUIPMENT_CLS_CD,
+            B.FAULT_CLS_CD,
+            COUNT(*) FAULT_CNT
+        FROM TB_MTC_FAULT_INFO A, TB_MTC_FAULT_DETL B
+        WHERE A.REG_DTTM BETWEEN CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 DAY), '%Y%m%d'),'000000') AND CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 DAY), '%Y%m%d'),'235959')
+        AND A.FAULT_SEQ = B.FAULT_SEQ
+        GROUP BY DATE_FORMAT(A.REG_DTTM, '%Y%m%d'), A.EQUIPMENT_CLS_CD, B.FAULT_CLS_CD
+        
+    </insert>      
+    <insert id="insertTB_STA_FAULT_MM">
+        INSERT INTO TB_STA_FAULT_MM
+        (
+            STAT_MM,
+            EQUIPMENT_CLS_CD,
+            FAULT_CLS_CD,
+            FAULT_CNT
+        )
+        SELECT
+            DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+            EQUIPMENT_CLS_CD,
+            FAULT_CLS_CD,
+            SUM(FAULT_CNT) FAULT_CNT
+        FROM TB_STA_FAULT_DD
+        WHERE STAT_DATE BETWEEN DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 MONTH), '%Y-%m-%d') AND DATE_FORMAT(DATE_ADD(LAST_DAY(NOW()), INTERVAL -1 MONTH), '%Y-%m-%d') 
+        GROUP BY
+            DATE_FORMAT(STAT_DATE, '%Y%m'),
+            EQUIPMENT_CLS_CD,
+            FAULT_CLS_CD
+        
+    </insert>      
+    <insert id="insertTB_STA_REPAIR_DD">
+        INSERT INTO TB_STA_REPAIR_DD
+        (
+            STAT_DATE,
+            EQUIPMENT_CLS_CD,
+            REPAIR_CLS_CD,
+            REPAIR_CNT
+        )
+        SELECT
+            DATE_FORMAT(A.REG_DTTM, '%Y%m%d') STAT_DATE,
+            A.EQUIPMENT_CLS_CD,
+            B.REPAIR_CLS_CD,
+            COUNT(*) REPAIR_CNT
+        FROM TB_MTC_REPAIR_INFO A, TB_MTC_REPAIR_DETL B
+        WHERE A.REG_DTTM BETWEEN CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 DAY), '%Y%m%d'),'000000') AND CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 DAY), '%Y%m%d'),'235959')
+        AND A.REPAIR_SEQ = B.REPAIR_SEQ
+        GROUP BY
+            DATE_FORMAT(A.REG_DTTM, '%Y%m%d'),
+            A.EQUIPMENT_CLS_CD,
+            B.REPAIR_CLS_CD
+        
+    </insert>      
+    <insert id="insertTB_STA_REPAIR_MM">
+        INSERT INTO TB_STA_REPAIR_MM
+        (
+            STAT_MM,
+            EQUIPMENT_CLS_CD,
+            REPAIR_CLS_CD,
+            REPAIR_CNT
+        )
+        SELECT
+            DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+            EQUIPMENT_CLS_CD,
+            REPAIR_CLS_CD,
+            SUM(REPAIR_CNT) REPAIR_CNT
+        FROM TB_STA_REPAIR_DD
+        WHERE STAT_DATE BETWEEN LAST_DAY(NOW() - INTERVAL 2 MONTH) +INTERVAL 1 DAY  AND DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 MONTH), '%Y-%m-%d')
+        GROUP BY
+            DATE_FORMAT(STAT_DATE, '%Y%m'),
+            EQUIPMENT_CLS_CD,
+            REPAIR_CLS_CD
+    </insert>      
+    <insert id="insertTB_STA_PAYMENT_DD">
+        
+        INSERT INTO TB_STA_PAYMENT_DD
+        (
+         STAT_DATE,
+         USR_CLS_CD, 
+         PAYMENT_AMT
+        ) 
+        SELECT DATE_FORMAT(A.PAYMENT_DTTM, '%Y%m%d') STAT_DATE, 
+         B.USR_CLS_CD, 
+         SUM(A.TOT_AMT) PAYMENT_AMT 
+        FROM TB_SVC_PAYMENT A 
+        JOIN TB_SVC_USR B ON A.USR_SEQ = B.USR_SEQ 
+        WHERE 
+        A.PAYMENT_DTTM BETWEEN CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 DAY), '%Y%m%d'),'000000') AND CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 DAY), '%Y%m%d'),'235959')
+        GROUP BY 
+         DATE_FORMAT(A.PAYMENT_DTTM, '%Y%m%d'), 
+         B.USR_CLS_CD
+    </insert>      
+    <insert id="insertTB_STA_PAYMENT_MM">
+        INSERT INTO TB_STA_PAYMENT_MM
+        (
+            STAT_MM,
+            USR_CLS_CD,
+            PAYMENT_AMT
+        )
+        SELECT
+            DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+            USR_CLS_CD,
+            SUM(PAYMENT_AMT) PAYMENT_AMT
+        FROM TB_STA_PAYMENT_DD
+        WHERE STAT_DATE BETWEEN DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -1 MONTH), '%Y-%m-%d') AND DATE_FORMAT(DATE_ADD(LAST_DAY(NOW()), INTERVAL -1 MONTH), '%Y-%m-%d') 
+        GROUP BY DATE_FORMAT(STAT_DATE, '%Y%m'), USR_CLS_CD
+    </insert>      
+    
+    <insert id="insertTB_STA_FOREIGN_RENT_DD">
+    <![CDATA[    
+        INSERT INTO TB_STA_FOREIGN_RENT_DD
+        (
+            STAT_DATE,
+            STATION_ID,
+            RENT_CNT,
+            RETURN_CNT
+        )
+        SELECT
+            DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -2 DAY), '%Y%m%d') STAT_DATE,
+            STATION_ID,
+            IFNULL(RENT_CNT, 0) RENT_CNT,
+            IFNULL(RETURN_CNT, 0) RETURN_CNT
+        FROM
+        (
+          SELECT
+             STATION_ID,
+             SUM(RENT_CNT) AS RENT_CNT,
+             SUM(RETURN_CNT) AS RETURN_CNT
+          FROM 
+          (
+              SELECT
+                  IFNULL(A.RENT_STATION_ID, '0') STATION_ID, /* 대여대여소ID 없는 경우 0으로 변경 */
+                  COUNT(*) RENT_CNT,
+                  0 AS RETURN_CNT
+              FROM TB_SVC_RENT_HIST A, TB_SVC_USR B
+              WHERE A.RENT_DTTM BETWEEN CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -2 DAY), '%Y%m%d'),'000000') AND CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -2 DAY), '%Y%m%d'),'235959')
+                AND A.USR_SEQ = B.USR_SEQ
+                AND B.USR_CLS_CD = 'USR_002'
+                AND A.RENT_HIST_SEQ  IN ( SELECT RENT_HIST_SEQ FROM TB_SVC_RENT_HIST X1
+                                           WHERE X1.RENT_HIST_SEQ = A.RENT_HIST_SEQ
+                                             AND (  A.USE_MI >= 2
+                                                   OR (A.USE_MI < 2 AND X1.RENT_STATION_ID <> X1.RETURN_STATION_ID ) 
+                                                  )
+                                         )
+              GROUP BY DATE_FORMAT(A.RENT_DTTM, '%Y%m%d'), A.RENT_STATION_ID
+              UNION ALL
+              SELECT
+                  IFNULL(A.RETURN_STATION_ID, '0') STATION_ID,  /* 반납대여소ID 없는 경우 0으로 변경(강제반납) */
+                  0 AS RENT_CNT,
+                  COUNT(*) RETURN_CNT
+              FROM TB_SVC_RENT_HIST A, TB_SVC_USR B
+              WHERE A.RENT_DTTM BETWEEN CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -2 DAY), '%Y%m%d'),'000000') AND CONCAT(DATE_FORMAT(DATE_ADD(NOW(), INTERVAL -2 DAY), '%Y%m%d'),'235959')
+                AND A.USR_SEQ = B.USR_SEQ
+                AND B.USR_CLS_CD = 'USR_002'
+                AND A.RENT_HIST_SEQ  IN ( SELECT RENT_HIST_SEQ FROM TB_SVC_RENT_HIST X1
+                                           WHERE X1.RENT_HIST_SEQ = A.RENT_HIST_SEQ
+                                             AND (  A.USE_MI >= 2
+                                                   OR (A.USE_MI < 2 AND X1.RENT_STATION_ID <> X1.RETURN_STATION_ID ) 
+                                                  )
+                                         )
+              GROUP BY DATE_FORMAT(A.RENT_DTTM, '%Y%m%d'), A.RETURN_STATION_ID
+           ) B
+           GROUP BY STATION_ID  
+        ) T1
+    ]]>    
+    </insert>    
+    <insert id="insertTB_STA_FOREIGN_RENT_MM">
+        INSERT INTO TB_STA_FOREIGN_RENT_MM
+        (
+            STAT_MM,
+            STATION_ID,
+            RENT_CNT,
+            RETURN_CNT
+        )
+        SELECT
+            DATE_FORMAT(STAT_DATE, '%Y%m') STAT_MM,
+            STATION_ID,
+            SUM(RENT_CNT) RENT_CNT,
+            SUM(RETURN_CNT) RETURN_CNT
+        FROM TB_STA_FOREIGN_RENT_DD
+        WHERE STAT_DATE BETWEEN LAST_DAY(NOW() - INTERVAL 2 MONTH) +INTERVAL 1 DAY AND LAST_DAY(NOW() - INTERVAL 1 MONTH)
+        GROUP BY DATE_FORMAT(STAT_DATE, '%Y%m'), STATION_ID
+    </insert> 
+    <insert id="insertTB_STA_RANK_MB_MM">
+    <![CDATA[ 
+       INSERT INTO TB_STA_RANK_MB_MM 
+       ( 
+         STAT_MM ,
+         USR_SEQ ,
+         USE_DIST ,
+         DIST_RANK ,
+         USE_CNT ,
+         USE_RANK
+       ) 
+		SELECT STAT_MM ,
+		       USR_SEQ ,
+		       SUM_USE_DIST AS USE_DIST ,
+		       DIST_RANK ,
+		       SUM_USE_CNT AS USE_CNT ,
+		       CNT_RANK AS USE_RANK 
+		  FROM 
+		       (SELECT TTT1.* , 
+		              (CASE WHEN @p_cnt > SUM_USE_CNT THEN @cnt_num:=@cnt_num+1 ELSE @cnt_num END) AS CNT_RANK , 
+		              @p_cnt:=SUM_USE_CNT 
+		         FROM 
+		              (SELECT TT1.* , 
+		                     (CASE WHEN @p_value > SUM_USE_DIST THEN @dist_num:=@dist_num+1 ELSE @dist_num END) AS DIST_RANK , 
+		                     @p_value := SUM_USE_DIST 
+		                FROM 
+		                     (SELECT DATE_FORMAT(T1.RENT_DTTM, '%Y%m') STAT_MM , 
+		                            T1.USR_SEQ , 
+		                            SUM(USE_DIST) AS SUM_USE_DIST , 
+		                            COUNT(*) AS SUM_USE_CNT , 
+		                            @dist_num:=1, @cnt_num:=1, @p_cnt:=0, @p_value:=0 
+		                       FROM 
+		                            (SELECT A.* 
+		                              FROM TB_SVC_RENT_HIST A INNER JOIN TB_SVC_MB B ON A.USR_SEQ = B.USR_SEQ 
+		                             WHERE 1=1 
+		                                   AND RENT_DTTM BETWEEN CONCAT(DATE_FORMAT(LAST_DAY(NOW() - INTERVAL 2 MONTH) +INTERVAL 1 DAY, '%Y%m%d'),'000000') AND CONCAT(DATE_FORMAT(LAST_DAY(NOW() - INTERVAL 1 MONTH), '%Y%m%d'),'235959') 
+		                                   AND A.RENT_HIST_SEQ IN 
+		                                   (SELECT RENT_HIST_SEQ FROM TB_SVC_RENT_HIST X1 
+		                                     WHERE X1.RENT_HIST_SEQ = A.RENT_HIST_SEQ 
+		                                       AND ( A.USE_MI >= 2 OR ( A.USE_MI < 2 AND X1.RENT_STATION_ID <> X1.RETURN_STATION_ID ) ) 
+		                                   ) 
+		                            ) T1 
+		                        GROUP BY T1.USR_SEQ 
+		                     ) TT1 
+		              ORDER BY SUM_USE_DIST DESC 
+		              ) TTT1 
+		       ORDER BY SUM_USE_CNT DESC ) AS TTTT1
+	]]>	       
+    </insert> 
+    
+    <insert id="insertOperationMaxBikeDD">
+    	<!-- <selectKey resultType="string" keyProperty="USE_YN" order="BEFORE">
+    			SELECT CASE
+						   WHEN C.UPDATE_YN = 'Y' OR C.INSERT_YN = 'Y'
+						   THEN 'Y'
+						   ELSE 'N'
+					   END AS USE_YN
+				FROM
+				(
+				SELECT CASE
+				    WHEN RENT_BIKE_CNT + PARKING_BIKE_CNT &lt; (SELECT B.RENT_BIKE_CNT + B.PARKING_BIKE_CNT AS NEW_CNT
+				                  FROM
+				                  (
+				                   SELECT SUM(CNT) AS RENT_BIKE_CNT,
+				                       (SELECT COUNT(*) AS CNT
+				                          FROM TB_OPR_BIKE_PARKING) AS PARKING_BIKE_CNT
+				                  FROM
+				                  (
+				                   SELECT COUNT(*) AS CNT
+				                   FROM TB_SVC_RENT
+				                   WHERE 1=1
+				                   AND RENT_DTTM + INTERVAL 10 MINUTE &gt; NOW()
+				                  UNION
+				                   SELECT COUNT(*) AS CNT
+				                   FROM TB_SVC_RENT_HIST
+				                   WHERE 1=1
+				                   AND RENT_DTTM + INTERVAL 10 MINUTE &gt; NOW()
+				                  )A
+				                 )B)
+				    THEN 'Y'
+				    ELSE 'N'
+				   END AS UPDATE_YN,
+				   IFNULL(MAX(RENT_BIKE_CNT), 'Y') AS INSERT_YN
+				FROM TB_STA_OPERATION_MAX_BIKE_DD D
+				WHERE 1=1
+				AND STAT_DD = DATE_FORMAT(CURDATE(), '%Y%m%d')
+				)C 
+    	</selectKey> -->
+    	
+    	<!-- <if test='USE_YN == "Y"'> -->
+		       INSERT INTO TB_STA_OPERATION_MAX_BIKE_DD 
+				(STAT_DD, RENT_BIKE_CNT, PARKING_BIKE_CNT, REG_DTTM) 
+				 SELECT B.*
+				 FROM
+				 (
+				 SELECT DATE_FORMAT(CURDATE(), '%Y%m%d') AS STAT_DD,
+					    SUM(CNT) AS RENT_BIKE_CNT,
+					    (SELECT COUNT(*) AS CNT
+					     FROM TB_OPR_BIKE_PARKING) AS PARKING_BIKE_CNT,
+					     NOW() AS TIME
+				 FROM
+				 (
+					 SELECT COUNT(*) AS CNT
+					 FROM TB_SVC_RENT
+					 WHERE 1=1
+					 AND RENT_DTTM + INTERVAL 10 MINUTE &gt; NOW()
+				  UNION
+					 SELECT COUNT(*) AS CNT
+					 FROM TB_SVC_RENT_HIST
+					 WHERE 1=1
+					 AND RENT_DTTM + INTERVAL 10 MINUTE &gt; NOW()
+				 )A
+				 )B
+				ON DUPLICATE KEY UPDATE 
+				STAT_DD=B.STAT_DD,
+				RENT_BIKE_CNT= B.RENT_BIKE_CNT, 
+				PARKING_BIKE_CNT= B.PARKING_BIKE_CNT,
+				MOD_DTTM=NOW()     
+		<!-- </if>  -->
+    </insert> 
+    
+    <select id="getOperationMaxBike" resultType="string">
+    	SELECT CASE
+				   WHEN C.UPDATE_YN = 'Y' OR C.INSERT_YN = 'Y'
+				   THEN 'Y'
+				   ELSE 'N'
+			   END AS USE_YN
+		FROM
+		(
+		SELECT CASE
+		    WHEN RENT_BIKE_CNT + PARKING_BIKE_CNT &lt; (SELECT B.RENT_BIKE_CNT + B.PARKING_BIKE_CNT AS NEW_CNT
+		                  FROM
+		                  (
+		                   SELECT SUM(CNT) AS RENT_BIKE_CNT,
+		                       (SELECT COUNT(*) AS CNT
+		                          FROM TB_OPR_BIKE_PARKING) AS PARKING_BIKE_CNT
+		                  FROM
+		                  (
+		                   SELECT COUNT(*) AS CNT
+		                   FROM TB_SVC_RENT
+		                   WHERE 1=1
+		                   AND RENT_DTTM + INTERVAL 10 MINUTE &gt; NOW()
+		                  UNION
+		                   SELECT COUNT(*) AS CNT
+		                   FROM TB_SVC_RENT_HIST
+		                   WHERE 1=1
+		                   AND RENT_DTTM + INTERVAL 10 MINUTE &gt; NOW()
+		                  )A
+		                 )B)
+		    THEN 'Y'
+		    ELSE 'N'
+		   END AS UPDATE_YN,
+		   IFNULL(MAX(RENT_BIKE_CNT), 'Y') AS INSERT_YN
+		FROM TB_STA_OPERATION_MAX_BIKE_DD D
+		WHERE 1=1
+		AND STAT_DD = DATE_FORMAT(CURDATE(), '%Y%m%d')
+		)C 
+    </select>
+    
+    <select id="getBikeList" resultType="java.util.Map">
+    	SELECT BIKE_ID
+		FROM TB_OPR_BIKE
+		ORDER BY CONVERT(SUBSTRING(BIKE_NO, 4, 10), UNSIGNED) DESC
+		    	
+    </select>
+    
+    <insert id="insertBikeBatteryDD" parameterType="org.fincl.miss.server.scheduler.job.systemStats.vo.BikeBatteryDDVO">
+    	INSERT INTO TB_STA_BIKE_BATTERY_DD
+    		(REG_YEAR, LEAP_YEAR_YN, BIKE_ID, REG_DTTM)
+    	VALUES
+    		(#{REG_YEAR}, #{LEAP_YEAR_YN}, #{BIKE_ID}, NOW())
+    </insert>
+    
+    <select id="getBikeBatteryInfo" resultType="java.util.HashMap">
+    	SELECT BIKE_ID,
+				 BIKE_BATTERY_STUS_CD,
+				 DATE_FORMAT(NOW(), '%Y') AS CUR_YEAR,
+				 CONCAT('DATE_', DATE_FORMAT(NOW(), '%m%d')) AS COMUMN_NAME
+		FROM TB_OPR_BIKE
+		WHERE 1=1
+		AND BIKE_STUS_CD IS NOT NULL
+		ORDER BY BIKE_NO
+    </select>
+       
+    <update id="updateBikeBatteryInfo" parameterType="java.util.Map">
+    	UPDATE TB_STA_BIKE_BATTERY_DD
+		SET ${COMUMN_NAME} = #{BIKE_BATTERY_STUS_CD}
+		WHERE 1=1
+		AND BIKE_ID = #{BIKE_ID}
+		AND REG_YEAR = #{CUR_YEAR}
+    </update>
+</mapper>    

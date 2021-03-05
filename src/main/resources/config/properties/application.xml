@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+	<entry key="application.root">D:/miss-local/application/service</entry>
+	<entry key="application.host">http://localhost:8081</entry>
+	<entry key="application.data">D:/miss-local/data</entry>
+	<entry key="application.svn">D:/miss-local/svn</entry>
+	
+	<entry key="appDeploy.path">/miss-service/appDown.json</entry>
+	<entry key="appDeploy.plist">/miss-service/iOSplist.json</entry>
+	
+	<!-- 앱 리소스 관리 SVN 경로 -->
+	<entry key="svn.repository.root">D:/miss-local/svn/repository</entry>
+	<entry key="svn.working.root">D:/miss-local/svn/working</entry>
+	<entry key="svn.sample.root">D:/miss-local/svn/sample</entry>
+	<entry key="svn.upload.root">D:/miss-local/svn/upload</entry>
+	<entry key="svn.temp.root">D:/miss-local/svn/temp</entry>
+	
+	<!-- 파일 경로 -->
+	<entry key="dir.web">D:/miss-local/data/webdata</entry>
+	<entry key="dir.app">D:/miss-local/data/app/</entry>
+	<entry key="dir.resource">D:/miss-local/data/resource/</entry>
+	<entry key="dir.certification">D:/miss-local/data/certification/</entry>
+	<entry key="dir.icon">D:/miss-local/data/app/icon/</entry>
+	<entry key="dir.screen">D:/miss-local/data/app/img/</entry>
+	<entry key="dir.attach">D:/miss-local/data/attach/</entry>
+	<entry key="dir.private">D:/miss-local/data/private/</entry>
+	
+	<entry key="upload.path">D:/miss-local/data/temp/</entry>
+	<entry key="upload.allow.size">104857600</entry>
+	
+</properties>

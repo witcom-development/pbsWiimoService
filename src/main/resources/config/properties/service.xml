@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	<entry key="serviceRegister.contextConfigurationClassPath">config/spring/service/platform-services-servlet.xml</entry>
+	<entry key="serviceRegister.classesRootPath">F:\eGovFrameDev-3.5.1-64bit\workspace\miss-biz\target\classes</entry>
+	<!-- entry key="serviceRegister.classesRootPath">/Users/civan/Documents/dki/miss-biz/target/miss-biz/WEB-INF/classes</entry -->
+	<entry key="serviceRegister.basePackageName">org.fincl.miss.service.biz</entry>
+	<entry key="channel.inbound.charset.convert">BYPASS</entry> <!-- BYPASS이면 그대로 전달 이외에는 해당 charset으로 변관하여 처리, BYPASS,EUC-KR, UTF-8 -->
+	<entry key="org.springframework.validation.BindException">1001</entry>
+	<entry key="java.lang.Throwable">9999</entry>
+</properties>

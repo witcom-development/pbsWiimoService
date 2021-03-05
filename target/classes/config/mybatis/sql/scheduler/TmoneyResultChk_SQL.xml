@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.scheduler.job.tmoney.TmoneyResultChkMapper">
+    
+    <select id="getPaymentResultChkTargetList" parameterType="org.fincl.miss.server.scheduler.job.tmoney.vo.TmoneyStatusVo" resultType="org.fincl.miss.server.scheduler.job.tmoney.vo.TmoneyStatusVo">
+         SELECT ORDER_ID        AS oid
+              , AMT             AS amt
+              , PAYMENT_REQ_SEQ AS paymentReqSeq
+              , TID             AS tid
+              , CERT            AS cert
+          FROM TB_SVC_PAYMENT_TMONET
+         WHERE VOUCHER_SEQ IS NULL
+           <if test='queryType =="S"'>
+           AND (PAYMENT_READ_RES_CD IS NULL OR PAYMENT_READ_RES_CD  = '00')
+           </if>
+           <if test='queryType =="C"'>
+           AND TID IS NOT NULL
+           AND PAYMENT_READ_RES_CD  = '00'
+          <![CDATA[  
+          AND RES_DH < DATE_SUB(NOW(), INTERVAL 1 MINUTE)  
+          ]]>   
+           </if>
+    </select>
+    <update id="setPaymentReadResCd" parameterType="org.fincl.miss.server.scheduler.job.tmoney.vo.TmoneyStatusVo">
+        UPDATE TB_SVC_PAYMENT_TMONET
+          SET PAYMENT_READ_RES_CD = #{paymentReadResCd}
+             ,MSG = #{result}
+        WHERE PAYMENT_REQ_SEQ = #{paymentReqSeq}
+    </update>    
+    
+    <insert id="addTmoneyPaymentCancelHist" parameterType="org.fincl.miss.server.scheduler.job.tmoney.vo.TmoneyStatusVo">
+        INSERT INTO  TB_SVC_PAYMENT_CANC_TMONET
+        (
+              PAYMENT_REQ_SEQ
+            , TRANS_ID
+            , ORDER_ID
+            , REQ_AMT
+            , CERT
+            , TYPE
+            , RESULT
+            , REG_DTTM
+        )
+        VALUES
+        (
+              #{paymentReqSeq}
+            , #{tid}
+            , #{oid}
+            , #{amt}
+            , #{cert }
+            , #{type}
+            , #{result}
+            , NOW()
+        )
+        
+    </insert>    
+</mapper>

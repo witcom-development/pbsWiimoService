@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						   http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<context:component-scan base-package="org.fincl.miss">
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.web.bind.annotation.ControllerAdvice" />
+	</context:component-scan>
+	<!-- <bean id="mbeanServerConnection" class="org.springframework.jmx.support.MBeanServerConnectionFactoryBean"> 
+		<property name="serviceUrl" value="service:jmx:rmi://localhost/jndi/rmi://localhost:1099/jmxrmi" 
+		/> </bean> -->
+
+	<bean id="messageSource"
+		class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="basenames">
+			<util:list>
+				<value>classpath:config/message/message-prop</value>
+				<value>classpath:config/message/payment-config</value>
+			</util:list>
+		</property>
+		<property name="cacheSeconds" value="5" />
+	</bean>
+
+	<util:properties id="exceptionProps"
+		location="classpath:config/properties/exception.xml" />
+	<!-- DB에 저장된 서버 아이디와 서버 그룹 아이디 -->
+	<util:properties id="serverProps" location="classpath:config/properties/server.xml"></util:properties>
+	<!-- code2Service에 전달될 프로퍼티 정보 -->
+	<util:properties id="code2Props" location="classpath:config/properties/code2.xml"></util:properties>
+
+	<bean id="errorSource"
+		class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="basenames" value="classpath:config/message/error" />
+		<property name="cacheSeconds" value="5" />
+	</bean>
+
+	<bean class="com.dkitec.cfood.core.ExceptionMessageBuilder">
+		<property name="messageSource" ref="errorSource" />
+	</bean>
+
+	<bean id="leaveaTrace" class="egovframework.rte.fdl.cmmn.trace.LeaveaTrace">
+		<property name="traceHandlerServices">
+			<bean
+				class="egovframework.rte.fdl.cmmn.trace.manager.DefaultTraceHandleManager">
+				<property name="reqExpMatcher">
+					<bean class="org.springframework.util.AntPathMatcher" />
+				</property>
+				<property name="patterns" value="*" />
+				<property name="handlers">
+					<bean class="egovframework.com.cmm.EgovComTraceHandler" />
+				</property>
+			</bean>
+		</property>
+	</bean>
+	
+	<bean class="org.fincl.miss.core.context.ApplicationContextSupport" />
+	
+</beans>

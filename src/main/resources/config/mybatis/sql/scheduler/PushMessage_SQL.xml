@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.scheduler.job.pushProc.service.ReturnAlarmMapper">
+	
+     <select id="getBikeReturnAlarm" resultType="org.fincl.miss.server.scheduler.job.pushProc.ReturnMsgVO" >
+     <![CDATA[ 
+     	SELECT A.*,
+		       from_unixtime((UNIX_TIMESTAMP(A.RENT_DTTM) +(A.BASE_TIME) ) ,'%H:%i') AS baseRentTime
+		  FROM 
+		  (
+		   SELECT REN.USR_SEQ AS usrSeq,
+		      USR.USR_DEVICE_ID AS usrDeviceId,
+		      USR.USR_DEVICE_TYPE AS usrDeviceType,
+		      dg_decrypt('TB_SVC_USR', 'USR_MPN_NO', USR.USR_MPN_NO)    AS usrMpnNo,
+		      REN.RENT_CLS_CD AS rentClsCd,
+		      REN.RENT_DTTM,
+		      (SELECT BIKE_NO FROM TB_OPR_BIKE WHERE BIKE_ID = REN.RENT_BIKE_ID) AS bikeNo,
+		      CASE 
+		       WHEN LEFT(CD.ADD_VAL1, 7) = 'PREMIUM'
+		      THEN (SELECT ADD_VAL1 FROM TB_SYS_COM_CD WHERE COM_CD = 'MSI_022') * 60
+		      ELSE (SELECT ADD_VAL1 FROM TB_SYS_COM_CD WHERE COM_CD = 'MSI_011') * 60
+		      END AS BASE_TIME,
+		      CASE 
+		       WHEN LEFT(ADD_VAL1, 7) = 'PREMIUM'
+		       THEN 'Y'
+		       ELSE 'N'
+		      END AS ISPREMIUM, 
+		      CD.ADD_VAL1, 
+		      VOU.VOUCHER_STR_DTTM, 
+		      VOU.VOUCHER_SEQ,
+		      REN.RENT_BIKE_ID AS rentBikeID
+		   FROM TB_SVC_RENT REN LEFT JOIN TB_SVC_VOUCHER VOU ON REN.VOUCHER_SEQ = VOU.VOUCHER_SEQ AND VOU.VOUCHER_USE_YN = 'Y',
+		      TB_SYS_COM_CD CD,
+		      TB_SVC_USR USR
+		   WHERE 1=1
+		   AND VOU.PAYMENT_CLS_CD = CD.COM_CD
+		   AND REN.USR_SEQ = USR.USR_SEQ
+		   AND REN.RENT_YN = 'Y'
+		   AND USR.USR_CLS_CD <> 'USR_002'
+		   AND REN.RENT_END_SMS_SEND_YN != 'Y'
+		  )A
+		  WHERE 1=1
+		  AND (A.ISPREMIUM = 'Y' AND TIME_TO_SEC(TIMEDIFF(DATE_ADD(A.RENT_DTTM, INTERVAL (SELECT ADD_VAL1 FROM TB_SYS_COM_CD WHERE COM_CD = 'MSI_022') MINUTE), NOW())) <= 600)
+		  OR (A.ISPREMIUM != 'Y' AND TIME_TO_SEC(TIMEDIFF(DATE_ADD(A.RENT_DTTM, INTERVAL (SELECT ADD_VAL1 FROM TB_SYS_COM_CD WHERE COM_CD = 'MSI_011') MINUTE), NOW())) <= 600)
+		  ORDER BY A.RENT_DTTM 
+     	
+     ]]>                                        
+     </select>
+     <!-- 반납임박 자전거 이력 조회(프리미엄 이용권 포함)_20170703_JJH_START -->
+     
+     
+     <select id="getBikeRentSend" resultType="java.util.HashMap" >
+     <![CDATA[ 
+     	SELECT RENT_SEQ, USR_SEQ, VOUCHER_SEQ, RENT_STATION_ID, RENT_RACK_ID, RENT_BIKE_ID
+			FROM TB_SVC_RENT
+			WHERE RENT_YN = 'N'
+			ORDER BY RENT_SEQ ASC
+
+     ]]>                                        
+     </select>
+     
+     <update id="setBikeRentSendComplete" parameterType="String">
+         UPDATE spb.TB_SVC_RENT
+           SET RENT_SEND_YN = 'Y' 
+         WHERE RENT_SEQ = #{rentBikeID}  
+     </update>
+    
+      
+      
+     <update id="setReturnAlarmMsgComplete" parameterType="org.fincl.miss.server.scheduler.job.pushProc.ReturnMsgVO">
+         UPDATE spb.TB_SVC_RENT
+           SET RENT_END_SMS_SEND_YN = 'Y' 
+         WHERE RENT_BIKE_ID = #{rentBikeID}  
+     </update>
+</mapper>

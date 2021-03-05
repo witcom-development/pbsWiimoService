@@ -1,0 +1,587 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+
+<mapper namespace="org.fincl.miss.server.message.parser.telegram.factory.db.TelegramMapper">
+ 
+    
+    
+	<select id="getHeader" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_HEADERVo" resultType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_HEADERVo">
+	SELECT A.HEADER_ID      AS headerId
+	      ,A.HEADER_VERSION AS headerVersion
+	      ,A.HEADER_NAME    AS headerName
+	      ,(SELECT CD_DESC FROM TB_COM_CD S WHERE S.CD_GRP_ID ='103' AND S.CD_ID = A.DELIMITER_CD )   AS delimiterCd
+	      ,A.MGR_ID         AS mgrId
+	      ,A.CREATE_ID      AS createId
+	      ,A.CREATE_DATE    AS createDate
+	      ,A.MODIFY_ID      AS modifyId
+	      ,A.MODIFY_DATE    AS modifyDate
+     FROM TB_IFS_TLGM_HEADER A
+    WHERE A.HEADER_ID = #{headerId}
+	</select>
+	
+	<select id="getHeaderRelList" resultType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_HEADER_RELVo" >
+	 SELECT A.RELATION_ID AS relationId
+	   FROM TB_IFS_TLGM_HEADER_REL A 
+	</select>
+	  
+	<select id="getHeaderFieldList" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_HEADER_FIELDVo" resultType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_HEADER_FIELDVo" >
+	  SELECT HEADER_ID    AS headerId
+            ,HEADER_ORDER AS headerOrder
+            ,(SELECT HEADER_FIELD  
+                FROM TB_IFS_TLGM_HEADER_FIELD S 
+               WHERE S.HEADER_ORDER = M.PARENT_HEADER_ORDER 
+                 AND S.HEADER_ID = M.HEADER_ID )AS parentHeaderField       
+            ,HEADER_DEPTH       AS headerDepth
+            ,HEADER_FIELD       AS headerField
+            ,HEADER_FIELD_NAME  AS headerFieldName
+            ,DATA_TYPE          AS dataType
+            ,DATA_LENGTH        AS dataLength
+            ,DATA_SIZE          AS dataSize
+            ,DATA_ARRAY_FIELD   AS dataArrayField
+            ,ESSENTIAL_YN       AS essentialYn
+            ,DEFAULT_DATA_VALUE AS defaultDataValue
+            ,HEADER_FIELD_DESC  AS headerFieldDesc
+        FROM TB_IFS_TLGM_HEADER_FIELD M 
+       WHERE HEADER_ID =  #{headerId}
+         AND HEADER_DEPTH =  #{headerDepth}
+       ORDER BY HEADER_ORDER 
+	</select>
+	
+	<select id="getHeaderFieldDeepsList" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_HEADER_FIELDVo" resultType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_HEADER_FIELDVo" >
+	  SELECT HEADER_ID  AS headerId
+            ,HEADER_ORDER  AS headerOrder
+            ,(SELECT HEADER_FIELD  
+                FROM TB_IFS_TLGM_HEADER_FIELD S 
+               WHERE S.HEADER_ORDER = M.PARENT_HEADER_ORDER 
+                 AND S.HEADER_ID = M.HEADER_ID ) AS parentHeaderField       
+            ,HEADER_DEPTH       AS headerDepth
+            ,HEADER_FIELD       AS headerField
+            ,HEADER_FIELD_NAME  AS headerFieldName
+            ,DATA_TYPE          AS dataType
+            ,DATA_LENGTH        AS dataLength
+            ,DATA_SIZE          AS dataSize
+            ,DATA_ARRAY_FIELD   AS dataArrayField
+            ,ESSENTIAL_YN       AS essentialYn
+            ,DEFAULT_DATA_VALUE AS defaultDataValue
+            ,HEADER_FIELD_DESC  AS headerFieldDesc
+        FROM TB_IFS_TLGM_HEADER_FIELD M 
+       WHERE HEADER_ID =#{headerId}
+         AND HEADER_DEPTH =  #{headerDepth}
+         AND PARENT_HEADER_ORDER =  #{parentHeaderOrder}
+         ORDER BY HEADER_ORDER
+	</select>
+	
+  
+  <select id="getHeaderRelationeList" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_HEADERVo" resultType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_HEADERVo" >
+  SELECT A.HEADER_ID        AS headerId
+        ,A.HEADER_VERSION   AS headerVersion
+        ,A.HEADER_NAME      AS headerName
+        ,(SELECT CD_DESC FROM TB_COM_CD S WHERE S.CD_GRP_ID ='103' AND S.CD_ID = A.DELIMITER_CD )   AS delimiterCd
+        ,A.MGR_ID       AS mgrId
+        ,A.CREATE_ID    AS createId
+        ,A.CREATE_DATE  AS createDate
+        ,A.MODIFY_ID    AS modifyId
+        ,A.MODIFY_DATE  AS mofidyDate
+        ,B.RELATION_ID  AS relationId
+      FROM TB_IFS_TLGM_HEADER A
+          ,TB_IFS_TLGM_HEADER_REL_DEC B
+    WHERE A.HEADER_ID = B.HEADER_ID
+      AND B.RELATION_ID = #{relationId}
+    ORDER BY B.RELATION_ORDER 
+  </select>
+  
+    <select id="getDynamicHeaderList" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_HEADERVo" resultType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_HEADERVo" >
+	  SELECT A.HEADER_ID        AS headerId
+	        ,A.HEADER_VERSION   AS headerVersion
+	        ,A.HEADER_NAME      AS headerName
+	        ,(SELECT CD_DESC FROM TB_COM_CD S WHERE S.CD_GRP_ID ='103' AND S.CD_ID = A.DELIMITER_CD )   AS delimiterCd
+	        ,A.MGR_ID       AS mgrId
+	        ,A.CREATE_ID    AS createId
+	        ,A.CREATE_DATE  AS createDate
+	        ,A.MODIFY_ID    AS modifyId
+	        ,A.MODIFY_DATE  AS mofidyDate
+	        ,A.DMC_HEADER_ID AS dmcHeaderId
+       FROM TB_IFS_TLGM_HEADER A 
+      WHERE A.DMC_HEADER_ID IS NOT NULL
+    </select>
+  
+  
+
+ <select id="getBodyIo" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IOVo" resultType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IOVo" >
+  SELECT A.SOURCE_IO_ID      AS sourceIoId      
+        ,A.TARGET_IO_ID      AS targetIoId
+        ,B.IO_ID             AS ioId
+        ,B.IO_VERSION AS ioVersion         
+        ,B.IO_NAME    AS ioName
+        ,(SELECT CD_DESC FROM TB_COM_CD S WHERE S.CD_GRP_ID ='103' AND S.CD_ID = B.DELIMITER_CD )    AS delimiterCd
+        ,B.MGR_ID     AS mgrId
+        ,B.CREATE_ID  AS createId
+        ,B.CREATE_DATE AS createDate
+        ,B.MODIFY_ID   AS modifyId
+        ,B.MODIFY_DATE AS modifyDate
+        ,A.TX_SYSTEM AS txSystem
+        ,A.TX_TYPE   AS txType
+    FROM TB_IFS_TLGM_IF A 
+        ,TB_IFS_TLGM_IO B   
+   WHERE A.IF_ID = #{ifId}
+     AND CASE WHEN #{messageType} in (0,1) THEN A.SOURCE_IO_ID ELSE A.TARGET_IO_ID END   = B.IO_ID  
+     
+      
+</select>
+
+
+ <select id="getParseBodyIo" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IOVo" resultType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IOVo" >
+  SELECT A.IO_ID             AS ioId
+        ,A.IO_VERSION AS ioVersion         
+        ,A.IO_NAME    AS ioName
+        ,(SELECT CD_DESC FROM TB_COM_CD S WHERE S.CD_GRP_ID ='103' AND S.CD_ID = A.DELIMITER_CD )    AS delimiterCd
+        ,A.MGR_ID     AS mgrId
+        ,A.CREATE_ID  AS createId
+        ,A.CREATE_DATE AS createDate
+        ,A.MODIFY_ID   AS modifyId
+        ,A.MODIFY_DATE AS modifyDate 
+    FROM TB_IFS_TLGM_IO A   
+   WHERE A.IO_ID = #{ioId}      
+</select>
+
+
+ <select id="getBodyFieldList" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IO_FIELDVo" resultType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IO_FIELDVo" >
+  SELECT C.IO_ID       AS ioId  
+        ,C.IO_ORDER    AS ioOrder
+        ,(SELECT IO_FIELD  
+            FROM TB_IFS_TLGM_IO_FIELD S 
+           WHERE S.IO_ORDER = C.PARENT_IO_ORDER 
+             AND S.IO_ID = C.IO_ID 
+             AND S.IO_TYPE = C.IO_TYPE ) AS parentIoField       
+        ,C.IO_DEPTH       AS ioDepth
+        ,C.IO_FIELD       AS ioField
+        ,C.IO_FIELD_NAME  AS ioFieldName
+        ,C.DATA_TYPE      AS dataType
+        ,C.DATA_LENGTH    AS dataLength
+        ,C.DATA_SIZE      AS DataSize
+        ,C.DATA_ARRAY_FIELD  AS dataArrayField
+        ,C.ESSENTIAL_YN      AS essentialYn
+        ,C.DEFAULT_DATA_VALUE AS defaultDataValue
+        ,C.IO_FIELD_DESC      AS ioFieldDesc 
+    FROM TB_IFS_TLGM_IF A 
+        ,TB_IFS_TLGM_IO B 
+        ,TB_IFS_TLGM_IO_FIELD C  
+   WHERE A.IF_ID = #{ifId} 
+     AND CASE WHEN  #{ioType} in (0,1) THEN A.SOURCE_IO_ID ELSE A.TARGET_IO_ID END = B.IO_ID 
+     AND B.IO_ID = C.IO_ID 
+     AND C.IO_TYPE = CASE WHEN #{ioType} > 1 THEN #{ioType} -2 ELSE #{ioType} END
+     AND IO_DEPTH =  #{ioDepth} 
+   ORDER BY IO_ORDER  
+ </select>
+ 
+ 
+ <select id="getBodyFieldDeepsList" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IO_FIELDVo" resultType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IO_FIELDVo" >
+   SELECT A.IO_ID    AS ioId      
+         ,A.IO_ORDER AS ioOrder       
+         ,(SELECT  IO_FIELD  
+             FROM TB_IFS_TLGM_IO_FIELD S 
+            WHERE S.IO_ORDER = A.PARENT_IO_ORDER 
+              AND S.IO_ID = A.IO_ID 
+              AND S.IO_TYPE =  A.IO_TYPE  ) AS parentIoField       
+         ,A.IO_DEPTH  as ioDepth
+         ,A.IO_FIELD  as ioField
+         ,A.IO_FIELD_NAME  AS ioFieldName
+         ,A.DATA_TYPE      AS dataType    
+         ,A.DATA_LENGTH    AS dataLength
+         ,A.DATA_SIZE      AS dataSize
+         ,A.DATA_ARRAY_FIELD AS dataArrayField
+         ,A.ESSENTIAL_YN     AS essentialYn
+         ,A.DEFAULT_DATA_VALUE AS defaultDataValue
+         ,A.IO_FIELD_DESC     AS  ioFieldDesc
+     FROM TB_IFS_TLGM_IO_FIELD A  
+    WHERE A.IO_ID =  #{ioId}  
+      AND A.IO_TYPE =  CASE WHEN #{ioType} > 1 THEN #{ioType} -2 ELSE #{ioType} END
+      AND A.IO_DEPTH =   #{ioDepth}  
+      AND A.PARENT_IO_ORDER =  #{parentIoOrder} 
+    ORDER BY A.IO_ORDER
+ </select>
+  
+ 
+  <select id="getInterfaceInfo" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IFVo" resultType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IFVo" >
+	SELECT A.IF_ID      AS ifId
+	      ,A.SOURCE_IO_ID      AS sourceIoId  
+	      ,A.TARGET_IO_ID      AS targetIoId 
+		  ,A.TX_TYPE     AS txType
+		  ,A.TX_SYSTEM   AS txSystem
+		  ,A.TX_WORK      AS txWork
+		  ,A.IF_NAME      AS ifName
+		  ,A.IF_DESC      AS ifDesc
+		  ,A.SERVICE_ID   AS serviceId
+		  ,A.IF_STATUS_CD AS ifStatusCd
+		  ,A.MGR_ID       AS mgrId
+		  ,A.CREATE_ID    AS createId
+		  ,A.CREATE_DATE  AS createDate
+		  ,A.MODIFY_ID    AS modifyId
+		  ,A.MODIFY_DATE  AS modifyDate
+		  ,B.IN_BOUND_CH_ID AS inBoundChId
+          ,B.OUT_BOUND_CH_ID AS outBoundChId
+ 	  FROM TB_IFS_TLGM_IF A,
+ 	       TB_IFS_TLGM_TX_SYSTEM B
+	 WHERE A.IF_ID = #{ifId}
+	   AND A.TX_TYPE = B.TX_TYPE
+       AND A.TX_SYSTEM = B.TX_SYSTEM
+       AND A.TX_WORK = B.TX_WORK
+   </select> 
+
+
+  <update id="modifyParseInterfaceInfo" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IFVo" > 
+	MERGE INTO TB_IFS_TLGM_IF S
+	USING(SELECT #{ifId}        AS IF_ID
+				,#{sourceIoId}  AS SOURCE_IO_ID      
+				,#{targetIoId}	AS TARGET_IO_ID      
+				,#{txType}     	AS TX_TYPE           
+				,#{txSystem}   	AS TX_SYSTEM         
+				,#{txWork}     	AS TX_WORK           
+				,#{ifName}     	AS IF_NAME           
+				,#{ifDesc}     	AS IF_DESC           
+				,#{serviceId}  	AS SERVICE_ID        
+				,#{ifStatusCd} 	AS IF_STATUS_CD      
+				,#{mgrId}      	AS MGR_ID            
+				,#{modifyId}   	AS MODIFY_ID         
+				,TO_DATE(#{modifyDate},'YYYY-MM-DD HH24:MI:SS')	AS MODIFY_DATE       
+				,#{createId}    AS CREATE_ID
+				,TO_DATE(#{modifyDate},'YYYY-MM-DD HH24:MI:SS') AS CREATE_DATE
+		    FROM DUAL) N
+	 ON (S.IF_ID = N.IF_ID)
+	WHEN MATCHED THEN 
+	UPDATE SET S.SOURCE_IO_ID = N.SOURCE_IO_ID  
+			  ,S.TARGET_IO_ID = N.TARGET_IO_ID 
+			  ,S.TX_TYPE      = N.TX_TYPE      
+			  ,S.TX_SYSTEM    = N.TX_SYSTEM    
+			  ,S.TX_WORK      = N.TX_WORK      
+			  ,S.IF_NAME      = N.IF_NAME      
+			  ,S.IF_DESC      = N.IF_DESC      
+			  ,S.SERVICE_ID   = N.SERVICE_ID   
+			  ,S.IF_STATUS_CD = N.IF_STATUS_CD 
+			  ,S.MGR_ID       = N.MGR_ID       
+	  		  ,S.MODIFY_ID    = N.MODIFY_ID    
+			  ,S.MODIFY_DATE  = N.MODIFY_DATE  
+	WHEN NOT MATCHED THEN 
+	 INSERT (IF_ID
+	        ,SOURCE_IO_ID
+			,TARGET_IO_ID 
+			,TX_TYPE      
+			,TX_SYSTEM    
+			,TX_WORK      
+			,IF_NAME      
+			,IF_DESC      
+			,SERVICE_ID   
+			,IF_STATUS_CD 
+			,MGR_ID       
+			,MODIFY_ID    
+			,MODIFY_DATE  
+			,CREATE_ID
+			,CREATE_DATE) 
+	 VALUES (N.IF_ID
+	        ,N.SOURCE_IO_ID  
+			,N.TARGET_IO_ID
+			,N.TX_TYPE     
+			,N.TX_SYSTEM   
+			,N.TX_WORK     
+			,N.IF_NAME     
+			,N.IF_DESC     
+			,N.SERVICE_ID  
+			,N.IF_STATUS_CD
+			,N.MGR_ID      
+			,N.MODIFY_ID   
+			,N.MODIFY_DATE  
+			,N.CREATE_ID
+			,N.CREATE_DATE)
+	</update>
+  
+     <update id="modifyParseBodyIoInfo" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IOVo" > 
+	MERGE INTO TB_IFS_TLGM_IO S
+	USING(SELECT #{ioId}        AS IO_ID         
+				,#{ioVersion}   AS IO_VERSION   
+				,#{ioName}      AS IO_NAME      
+				,#{delimiterCd} AS DELIMITER_CD   
+				,#{mgrId}      	AS MGR_ID            
+				,#{modifyId}   	AS MODIFY_ID         
+				,TO_DATE(#{modifyDate},'YYYY-MM-DD HH24:MI:SS')	AS MODIFY_DATE       
+				,#{createId}    AS CREATE_ID
+				,TO_DATE(#{modifyDate},'YYYY-MM-DD HH24:MI:SS') AS CREATE_DATE
+		    FROM DUAL) N
+	 ON (S.IO_ID = N.IO_ID)
+	WHEN MATCHED THEN 
+	UPDATE SET S.IO_VERSION   = N.IO_VERSION  
+			  ,S.IO_NAME      = N.IO_NAME 
+			  ,S.DELIMITER_CD = N.DELIMITER_CD  
+			  ,S.MGR_ID       = N.MGR_ID       
+	  		  ,S.MODIFY_ID    = N.MODIFY_ID    
+			  ,S.MODIFY_DATE  = N.MODIFY_DATE  
+	WHEN NOT MATCHED THEN 
+	 INSERT (IO_ID
+	        ,IO_VERSION
+			,IO_NAME 
+			,DELIMITER_CD
+			,MGR_ID       
+			,MODIFY_ID    
+			,MODIFY_DATE  
+			,CREATE_ID
+			,CREATE_DATE) 
+	 VALUES (N.IO_ID
+	        ,N.IO_VERSION  
+			,N.IO_NAME
+			,N.DELIMITER_CD  
+			,N.MGR_ID      
+			,N.MODIFY_ID   
+			,N.MODIFY_DATE  
+			,N.CREATE_ID
+			,N.CREATE_DATE)
+	</update>
+
+	
+    <update id="modifyParseBodyIoWorkInfo" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IOVo" > 
+	MERGE INTO TB_IFS_TLGM_IO_WORK S
+	USING(SELECT #{ioId}        AS IO_ID         
+ 				,#{ioName}      AS IO_NAME      
+				,#{delimiterCd} AS DELIMITER_CD
+                ,'002'          AS IO_STATUS_CD   
+				,#{mgrId}      	AS MGR_ID            
+				,#{modifyId}   	AS MODIFY_ID         
+				,TO_DATE(#{modifyDate},'YYYY-MM-DD HH24:MI:SS')	AS MODIFY_DATE       
+				,#{createId}    AS CREATE_ID
+				,TO_DATE(#{modifyDate},'YYYY-MM-DD HH24:MI:SS') AS CREATE_DATE
+		    FROM DUAL) N
+	 ON (S.IO_ID = N.IO_ID)
+	WHEN MATCHED THEN 
+	UPDATE SET S.IO_NAME      = N.IO_NAME 
+			  ,S.DELIMITER_CD = N.DELIMITER_CD 
+			  ,S.IO_STATUS_CD = N.IO_STATUS_CD  
+			  ,S.MGR_ID       = N.MGR_ID       
+	  		  ,S.MODIFY_ID    = N.MODIFY_ID    
+			  ,S.MODIFY_DATE  = N.MODIFY_DATE  
+	WHEN NOT MATCHED THEN 
+	 INSERT (IO_ID
+			,IO_NAME 
+			,DELIMITER_CD
+	        ,IO_STATUS_CD
+			,MGR_ID       
+			,MODIFY_ID    
+			,MODIFY_DATE  
+			,CREATE_ID
+			,CREATE_DATE) 
+	 VALUES (N.IO_ID
+			,N.IO_NAME
+			,N.DELIMITER_CD  
+	        ,N.IO_STATUS_CD  
+			,N.MGR_ID      
+			,N.MODIFY_ID   
+			,N.MODIFY_DATE  
+			,N.CREATE_ID
+			,N.CREATE_DATE)
+	</update>
+	
+	<delete id="deleteParseBodyIoField" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IOVo" > 
+	 DELETE TB_IFS_TLGM_IO_FIELD S
+	  WHERE S.IO_ID = #{ioId}
+	</delete>
+	
+	<insert id="insertParseBodyIoField" parameterType="java.util.HashMap" > 
+    INSERT INTO TB_IFS_TLGM_IO_FIELD(IO_ID
+									,IO_TYPE
+									,IO_ORDER
+									,PARENT_IO_ORDER
+									,IO_FIELD
+									,IO_FIELD_NAME 
+									,IO_FIELD_DESC
+									,IO_DEPTH
+									,DATA_TYPE
+									,DATA_LENGTH
+									,DATA_SIZE
+									,ESSENTIAL_YN
+									,DATA_ARRAY_FIELD
+									,DEFAULT_DATA_VALUE
+									,MODIFY_ID
+									,MODIFY_DATE
+									,CREATE_ID
+									,CREATE_DATE ) 
+      
+	    <foreach collection="fieldList" item="item" index="index" separator=" UNION ALL ">
+		  SELECT #{item.ioId}
+				,#{item.ioType}
+				,#{item.ioOrder}
+				,#{item.parentIoOrder}
+				,#{item.ioField}
+				,#{item.ioFieldName} 
+				,#{item.ioFieldDesc}
+		 		,#{item.ioDepth}
+				,#{item.dataType}
+				,#{item.dataLength}
+				,#{item.dataSize}
+				,#{item.essentialYn}
+				,#{item.dataArrayField}
+				,#{item.defaultDataValue}
+				,#{item.modifyId}
+				,TO_DATE(#{item.modifyDate},'YYYY-MM-DD HH24:MI:SS')	   
+				,#{item.createId}
+				,TO_DATE(#{item.createDate},'YYYY-MM-DD HH24:MI:SS')
+		  FROM DUAL
+	    </foreach>  
+	</insert>
+
+
+	
+	<delete id="deleteParseBodyIoFieldWork" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IOVo" > 
+	 DELETE TB_IFS_TLGM_IO_FIELD_WORK S
+	  WHERE S.IO_ID = #{ioId}
+	</delete>
+	
+	<delete id="deleteParseBodyIoHist" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IOVo" > 
+	DELETE TB_IFS_TLGM_IO_HIST
+     WHERE IO_ID = #{ioId}
+       AND IO_VERSION >= #{ioVersion}
+	</delete>
+	<delete id="deleteParseBodyIoFieldHist" parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IOVo" > 
+	DELETE TB_IFS_TLGM_IO_FIELD_HIST
+     WHERE IO_ID = #{ioId}
+       AND IO_VERSION >= #{ioVersion}
+	</delete>
+  
+  	<insert id="insertParseBodyIoHistBackup"  parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IOVo" > 
+    INSERT INTO TB_IFS_TLGM_IO_HIST(IO_ID
+                               ,IO_VERSION
+                               ,IO_NAME
+                               ,DELIMITER_CD
+                               ,MGR_ID
+                               ,CREATE_ID
+                               ,CREATE_DATE)
+	SELECT IO_ID
+	      ,IO_VERSION 
+	      ,IO_NAME
+	      ,DELIMITER_CD
+	      ,MGR_ID
+	      ,MODIFY_ID
+	      ,MODIFY_DATE  
+	FROM TB_IFS_TLGM_IO
+	WHERE IO_ID =  #{ioId}
+   </insert>
+   
+  <insert id="insertParseBodyIoFieldHistBackup"  parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IOVo" > 
+   INSERT INTO TB_IFS_TLGM_IO_FIELD_HIST(IO_ID
+                                     ,IO_ORDER
+                                     ,PARENT_IO_ORDER
+                                     ,IO_VERSION
+                                     ,IO_TYPE
+                                     ,IO_FIELD
+                                     ,IO_FIELD_NAME
+                                     ,IO_FIELD_DESC                                     
+                                     ,IO_DEPTH
+                                     ,DATA_TYPE
+                                     ,DATA_LENGTH
+                                     ,DATA_SIZE
+                                     ,DATA_ARRAY_FIELD
+                                     ,ESSENTIAL_YN
+                                     ,DEFAULT_DATA_VALUE 
+                                     ,CREATE_ID
+                                     ,CREATE_DATE) 
+
+	SELECT IO_ID
+	      ,IO_ORDER
+	      ,PARENT_IO_ORDER
+	      , #{ioVersion} - 1
+	      ,IO_TYPE
+	      ,IO_FIELD
+	      ,IO_FIELD_NAME
+	      ,IO_FIELD_DESC                                     
+	      ,IO_DEPTH
+	      ,DATA_TYPE
+	      ,DATA_LENGTH
+	      ,DATA_SIZE
+	      ,DATA_ARRAY_FIELD
+	      ,ESSENTIAL_YN
+	      ,DEFAULT_DATA_VALUE 
+	      ,CREATE_ID
+	      ,CREATE_DATE
+	FROM TB_IFS_TLGM_IO_FIELD
+	WHERE IO_ID =  #{ioId}
+   </insert>
+   	
+   	
+ <insert id="insertParseBodyIoFieldWork"  parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IOVo" > 
+   INSERT INTO TB_IFS_TLGM_IO_FIELD_WORK(IO_ID
+                                        ,IO_ORDER
+                                        ,IO_FIELD
+                                        ,IO_FIELD_NAME
+                                        ,IO_DEPTH
+                                        ,DATA_TYPE
+                                        ,DATA_LENGTH
+                                        ,DATA_SIZE
+                                        ,ESSENTIAL_YN
+                                        ,IO_FIELD_DESC
+                                        ,IO_TYPE
+                                        ,DATA_ARRAY_FIELD
+                                        ,PARENT_IO_ORDER
+                                        ,DEFAULT_DATA_VALUE
+                                        ,MODIFY_ID
+                                        ,MODIFY_DATE
+                                        ,CREATE_ID
+                                        ,CREATE_DATE )
+	SELECT IO_ID
+	       ,IO_ORDER
+	       ,IO_FIELD
+	       ,IO_FIELD_NAME
+	       ,IO_DEPTH
+	       ,DATA_TYPE
+	       ,DATA_LENGTH
+	       ,DATA_SIZE
+	       ,ESSENTIAL_YN
+	       ,IO_FIELD_DESC
+	       ,IO_TYPE
+	       ,DATA_ARRAY_FIELD
+	       ,PARENT_IO_ORDER
+	       ,DEFAULT_DATA_VALUE
+	       ,MODIFY_ID
+	       ,MODIFY_DATE
+	       ,CREATE_ID
+	       ,CREATE_DATE
+	FROM TB_IFS_TLGM_IO_FIELD
+	WHERE IO_ID = #{ioId}
+   </insert>
+   
+  <update id="modifyParseChannelTx"  parameterType="org.fincl.miss.server.message.parser.telegram.factory.db.TB_IFS_TLGM_IFVo" > 
+    MERGE INTO TB_IFS_TLGM_TX_SYSTEM S
+    USING(SELECT #{txType}        AS TX_TYPE         
+                ,#{txSystem}      AS TX_SYSTEM      
+                ,#{txWork}        AS TX_WORK
+                ,#{txTypeDesc}    AS TX_TYPE_DESC   
+                ,#{txSystemDesc}  AS TX_SYSTEM_DESC            
+                ,#{txWorkDesc}    AS TX_WORK_DESC    
+                ,#{modifyId}      AS MODIFY_ID    
+			    ,SYSDATE          AS MODIFY_DATE  
+                ,#{createId}      AS CREATE_ID
+                ,SYSDATE          AS CREATE_DATE
+           FROM DUAL) N
+     ON (S.TX_TYPE = N.TX_TYPE
+         AND S.TX_SYSTEM = N.TX_SYSTEM
+         AND S.TX_WORK = N.TX_WORK
+        )
+	WHEN NOT MATCHED THEN 
+	 INSERT (TX_TYPE
+			,TX_SYSTEM 
+			,TX_WORK
+	        ,TX_TYPE_DESC
+			,TX_SYSTEM_DESC   
+            ,TX_WORK_DESC    
+			,MODIFY_ID    
+			,MODIFY_DATE  
+			,CREATE_ID
+			,CREATE_DATE) 
+	 VALUES (N.TX_TYPE
+			,N.TX_SYSTEM  
+	        ,N.TX_WORK  
+			,N.TX_TYPE_DESC 
+            ,N.TX_SYSTEM_DESC
+            ,N.TX_WORK_DESC
+			,N.MODIFY_ID   
+			,N.MODIFY_DATE  
+			,N.CREATE_ID
+			,N.CREATE_DATE)
+	</update>
+</mapper>

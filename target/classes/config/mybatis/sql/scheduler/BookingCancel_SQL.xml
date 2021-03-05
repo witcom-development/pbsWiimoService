@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.scheduler.job.bookingCancel.service.BookingCancelMapper">
+<!--예약 취소용 QUERY-->
+<update id="setOverTimeBookingRack">
+    UPDATE spb.TB_OPR_RACK
+       SET RACK_STUS_CD = 'RAS_003'
+          ,TEMP_RESVE_DTTM = null
+      WHERE RACK_ID IN (SELECT T.RACK_ID
+                          FROM (SELECT RACK_ID
+                                 FROM spb.TB_OPR_RACK
+                                WHERE RACK_STUS_CD = 'RAS_009' 
+                                  AND UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(TEMP_RESVE_DTTM)  > (SELECT ADD_VAL1
+                                                                                                  FROM spb.TB_SYS_COM_CD
+                                                                                                  WHERE COM_CD = 'MSI_017') * 60) AS T)
+      AND RACK_ID NOT IN (SELECT RENT_RACK_ID
+						  FROM TB_SVC_RENT)  
+</update>
+<!--예약 취소용 QUERY-->
+<update id="setOverTimeRentRack">
+    UPDATE spb.TB_OPR_RACK
+       SET RACK_STUS_CD = 'RAS_003'
+          ,TEMP_RESVE_DTTM = null
+      WHERE RACK_ID IN ( SELECT RENT_RACK_ID
+                           FROM spb.TB_SVC_RENT
+                          WHERE RENT_YN ='N'
+                            AND UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(RENT_DTTM)  > (SELECT ADD_VAL1
+                                                                                   FROM spb.TB_SYS_COM_CD
+                                                                                  WHERE COM_CD = 'MSI_013') * 60)
+        AND RACK_STUS_CD = 'RAS_008'                                                                          
+</update>
+<!--예약 취소용 QUERY-->
+<delete id="delOverTimeBookingRent">
+    DELETE 
+      FROM spb.TB_SVC_RENT 
+     WHERE RENT_SEQ IN (SELECT T.RENT_SEQ 
+                          FROM (
+                                SELECT A.RENT_SEQ
+                                   FROM spb.TB_SVC_RENT A
+                                  WHERE A.RENT_YN ='N'
+                                    AND UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(A.RENT_DTTM)  > (SELECT ADD_VAL1
+                                                                                                FROM spb.TB_SYS_COM_CD
+                                                                                               WHERE COM_CD = 'MSI_013')*60) AS T)
+</delete>   
+
+<select id="getBookingCancelMsgList" resultType="org.fincl.miss.server.scheduler.job.bookingCancel.vo.BookingCancelVO">
+    SELECT (SELECT STATION_NAME
+              FROM spb.TB_OPR_STATION S INNER JOIN spb.TB_OPR_MLANG_STATION M 
+                ON S.STATION_ID = M.STATION_ID AND M.LANG_CLS_CD = 'LAG_001'  
+              WHERE S.STATION_ID = A.RENT_STATION_ID )                         AS stationName
+          ,(SELECT LPAD(NOW_STATION_EQUIP_ORD,3,0)
+              FROM spb.TB_OPR_RACK
+              WHERE RACK_ID = A.RENT_RACK_ID)                                  AS stationEquipOrder
+          ,dg_decrypt('TB_SVC_USR', 'USR_MPN_NO', U.USR_MPN_NO)    AS usrMpnNo    
+      FROM spb.TB_SVC_RENT A INNER JOIN spb.TB_SVC_USR U ON A.USR_SEQ = U.USR_SEQ
+     WHERE A.RENT_SEQ IN (SELECT T.RENT_SEQ 
+                          FROM (
+                                SELECT A.RENT_SEQ
+                                   FROM spb.TB_SVC_RENT A
+                                  WHERE A.RENT_YN ='N'
+                                    AND UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(A.RENT_DTTM)  > (SELECT ADD_VAL1
+                                                                                                FROM spb.TB_SYS_COM_CD
+                                                                                               WHERE COM_CD = 'MSI_013')*60) AS T)
+       AND U.USR_CLS_CD != 'USR_002'                                                                                         
+</select>    
+
+</mapper>

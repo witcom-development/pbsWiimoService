@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.scheduler.job.blackUsr.BlackListMapper">
+    <select id="getBlackTargetList" resultType="String">
+    <![CDATA[
+        SELECT Cast(A.USR_SEQ  as char) AS usrSeq
+          FROM spb.TB_SVC_USR_BLKLIST A, spb.TB_SVC_MB B 
+         WHERE A.USR_SEQ = B.USR_SEQ
+           AND B.LEAVE_YN = 'N'
+           AND A.BLKLIST_REASON_CD = 'BLA_001'
+           AND A.BLKLIST_REG_DTTM <= DATE_FORMAT(DATE_SUB(NOW() , INTERVAL (SELECT ADD_VAL1 FROM spb.TB_SYS_COM_CD WHERE COM_CD = 'MSI_021') DAY),'%Y%m%d' )+INTERVAL 1 DAY -INTERVAL 1 SECOND
+    ]]>
+    </select>
+    <update id="delBlackList" parameterType="String">
+        DELETE FROM TB_SVC_USR_BLKLIST
+        WHERE   USR_SEQ = #{usrSeq}
+    </update>
+    
+    <update id="setPenaltyStatus" parameterType="String">
+        UPDATE TB_SVC_PENALTY
+           SET READ_CLS_CD = 'H'
+         WHERE USR_SEQ = #{usrSeq}
+    </update>
+</mapper>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	<entry key="port">5701</entry>
+	<entry key="members">
+		10.112.58.245:5701,
+		10.112.58.245:5702,
+		10.112.58.245:5703
+	</entry>
+</properties>

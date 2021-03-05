@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.scheduler.job.serialNoProc.service.SerialNoProcMapper">
+    <select id="getSerialNoMemberInfo" resultType="Map">
+    <![CDATA[
+    	SELECT H.USR_SEQ AS usrSeq,
+    		   H.VOUCHER_SEQ AS voucherSeq,
+    		   H.PAYMENT_SEQ AS paymentSeq,
+    		   P.PAYMENT_CONFM_NO AS tid,
+    		   CASE
+    		   	WHEN LEFT(P.PAYMENT_CONFM_NO, 13) = 'seoulbikekrte'
+    		   	THEN LEFT(P.PAYMENT_CONFM_NO, 15)
+    		   	ELSE LEFT(P.PAYMENT_CONFM_NO, 11)
+    		   END AS m_id,
+    		   CASE
+    		   	WHEN LEFT(P.PAYMENT_CONFM_NO, 11) = 'seoulbikeus'
+    		   	THEN 'spb@'
+    		   	ELSE 'victek1!'
+    		   END AS spiSecretKey,
+    		   P.TOT_AMT AS paymentAmt
+    	FROM TB_SVC_SERIAL_NO_HIST H LEFT JOIN TB_SVC_USR U ON H.USR_SEQ = U.USR_SEQ
+    		 LEFT JOIN TB_SVC_VOUCHER V ON H.VOUCHER_SEQ = V.VOUCHER_SEQ
+    		 LEFT JOIN TB_SVC_PAYMENT P ON H.PAYMENT_SEQ = P.PAYMENT_SEQ
+    	WHERE 1=1
+    	AND V.VOUCHER_USE_YN != 'Y'
+    	AND V.PAYMENT_DTTM + INTERVAL 1 DAY <= NOW()
+    	ORDER BY P.PAYMENT_SEQ DESC
+    ]]>
+    </select>
+
+</mapper>

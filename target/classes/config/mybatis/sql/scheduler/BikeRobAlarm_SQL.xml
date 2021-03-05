@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.scheduler.job.bikeRob.BikeRobAlarmMapper">
+   <select id="getBikeRobSmsTarget" resultType="String">
+       SELECT CONCAT(ADD_VAL1,',',ADD_VAL2,',',ADD_VAL3) AS sms
+         FROM TB_SYS_COM_CD
+         WHERE COM_CD = 'MSI_020'              
+   </select>   
+   <select id="getBikeRobList" resultType="Map">
+   <![CDATA[
+          SELECT  A.BIKE_ID  AS BIKE_ID
+                 ,A.RACK_ID  AS RACK_ID
+                 ,A.BIKE_NO  AS BIKE_NO
+             FROM   
+               ( SELECT COUNT(*) AS CNT
+                       ,ROB.BIKE_ID 
+                       ,ROB.RACK_ID
+                       ,(SELECT BIKE_NO FROM TB_OPR_BIKE WHERE BIKE_ID = ROB.BIKE_ID) AS BIKE_NO
+                       ,REG_DTTM
+                 FROM spb.TB_OPR_ROB_BRI ROB
+                left outer join TB_OPR_ALARM_HIST HIST ON  ROB.BIKE_ID = HIST.BIKE_ID  and HIST.ALARM_DTTM  <= (NOW()- INTERVAL CONVERT((SELECT ADD_VAL1 FROM spb.TB_SYS_COM_CD   WHERE COM_CD = 'MSI_018'), UNSIGNED) minute)
+                WHERE REG_DTTM BETWEEN  (NOW()- INTERVAL CONVERT((SELECT ADD_VAL1 FROM spb.TB_SYS_COM_CD   WHERE COM_CD = 'MSI_018'), UNSIGNED) minute) AND NOW() 
+                GROUP BY ROB.BIKE_ID       )  A  
+            WHERE A.CNT >= (SELECT ADD_VAL1 FROM spb.TB_SYS_COM_CD   WHERE COM_CD = 'MSI_019')
+   ]]>          
+   </select>
+   <insert id="addHistAlarm" parameterType="Map">
+       INSERT INTO `spb`.`TB_OPR_ALARM_HIST`
+        ( 
+           RACK_ID
+         , BIKE_ID
+         , BIKE_STUS_CD
+         , LOCK_STUS_CD
+         , ALARM_DTTM
+        )
+        VALUES (
+           #{RACK_ID}
+         , #{BIKE_ID}
+         , ''
+         , ''
+         , NOW()
+        )
+   </insert>    
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+
+	<!-- Local -->
+	<!-- 
+	<entry key="driverClassName">org.mariadb.jdbc.Driver</entry>
+	<entry key="url">jdbc:mariadb://127.0.0.1:3306/spb?autoReconnect=true&amp;autoReconnectForPools=true</entry>
+	<entry key="username">0b7f442b02ca3f1894ca33386b6812e4</entry>
+	<entry key="password">594b8174c76d38a0b7050837608025ed</entry>
+	
+	<entry key="db2DriverClassName">org.mariadb.jdbc.Driver</entry>
+	<entry key="db2Url">jdbc:mariadb://127.0.0.1:3306/spb?autoReconnect=true&amp;autoReconnectForPools=true</entry>
+	<entry key="db2Username">0b7f442b02ca3f1894ca33386b6812e4</entry>
+	<entry key="db2Password">594b8174c76d38a0b7050837608025ed</entry>
+	 -->
+	 
+	
+<!-- 	<entry key="driverClassName">org.mariadb.jdbc.Driver</entry> -->
+<!-- 	<entry key="url">jdbc:mysql://192.168.11.12:3306/spb?autoReconnect=true&amp;autoReconnectForPools=true</entry> -->
+<!-- 	<entry key="username">0b7f442b02ca3f1894ca33386b6812e4</entry> -->
+<!-- 	<entry key="password">594b8174c76d38a0b7050837608025ed</entry> -->
+	
+<!-- 	<entry key="db2DriverClassName">org.mariadb.jdbc.Driver</entry> -->
+<!-- 	<entry key="db2Url">jdbc:mysql://192.168.11.12:3306/spb?autoReconnect=true&amp;autoReconnectForPools=true</entry> -->
+<!-- 	<entry key="db2Username">0b7f442b02ca3f1894ca33386b6812e4</entry> -->
+<!-- 	<entry key="db2Password">594b8174c76d38a0b7050837608025ed</entry>  -->
+	
+<!-- 	<entry key="driverClassName">org.mariadb.jdbc.Driver</entry> -->
+<!-- 	<entry key="url">jdbc:mysql://192.168.14.223:3306/spb?autoReconnect=true&amp;autoReconnectForPools=true</entry> -->
+<!-- 	<entry key="username">0b7f442b02ca3f1894ca33386b6812e4</entry> -->
+<!-- 	<entry key="password">594b8174c76d38a0b7050837608025ed</entry> -->
+	
+<!-- 	<entry key="db2DriverClassName">org.mariadb.jdbc.Driver</entry> -->
+<!-- 	<entry key="db2Url">jdbc:mysql://192.168.14.223:3306/spb?autoReconnect=true&amp;autoReconnectForPools=true</entry> -->
+<!-- 	<entry key="db2Username">0b7f442b02ca3f1894ca33386b6812e4</entry> -->
+<!-- 	<entry key="db2Password">594b8174c76d38a0b7050837608025ed</entry>  -->
+
+<entry key="driverClassName">org.mariadb.jdbc.Driver</entry>
+	<entry key="url">jdbc:mysql://192.168.14.253:3306/spb?autoReconnect=true&amp;autoReconnectForPools=true</entry>
+	<entry key="username">0b7f442b02ca3f1894ca33386b6812e4</entry>
+	<entry key="password">594b8174c76d38a0b7050837608025ed</entry>
+	
+	<entry key="db2DriverClassName">org.mariadb.jdbc.Driver</entry>
+	<entry key="db2Url">jdbc:mysql://192.168.14.253:3306/spb?autoReconnect=true&amp;autoReconnectForPools=true</entry>
+	<entry key="db2Username">0b7f442b02ca3f1894ca33386b6812e4</entry>
+	<entry key="db2Password">594b8174c76d38a0b7050837608025ed</entry> 
+
+
+	<!-- Dev -->
+	<!-- 
+	
+	<entry key="driverClassName">org.mariadb.jdbc.Driver</entry>
+	<entry key="url">jdbc:mariadb://125.133.65.235:3306/spb?autoReconnect=true&amp;autoReconnectForPools=true</entry>
+	<entry key="username">0b7f442b02ca3f1894ca33386b6812e4</entry>
+	<entry key="password">594b8174c76d38a0b7050837608025ed</entry>
+	
+	<entry key="db2DriverClassName">org.mariadb.jdbc.Driver</entry>
+	<entry key="db2Url">jdbc:mariadb://125.133.65.236:3306/spb?autoReconnect=true&amp;autoReconnectForPools=true</entry>
+	<entry key="db2Username">0b7f442b02ca3f1894ca33386b6812e4</entry>
+	<entry key="db2Password">594b8174c76d38a0b7050837608025ed</entry>
+	 -->
+	 
+<!-- 	 <entry key="driverClassName">org.mariadb.jdbc.Driver</entry>
+        <entry key="url">jdbc:mariadb://172.27.0.153:3306/spb?autoReconnect=true&amp;autoReconnectForPools=true</entry>
+        <entry key="url">jdbc:mariadb://10.65.7.6:3306/spb?interactiveClient=true&amp;autoReconnect=true&amp;autoReconnectForPools=true</entry>
+        <entry key="url">jdbc:mariadb://125.133.65.235:3306/spb?autoReconnect=true&amp;autoReconnectForPools=true</entry>
+        <entry key="url">jdbc:mariadb://14.63.180.206:6800/spb?interactiveClient=true&amp;autoReconnect=true&amp;autoReconnectForPools=true</entry>
+        <entry key="username">0b7f442b02ca3f1894ca33386b6812e4</entry>
+        <entry key="password">594b8174c76d38a0b7050837608025ed</entry>
+
+        <entry key="db2DriverClassName">org.mariadb.jdbc.Driver</entry>
+        <entry key="db2Url">jdbc:mariadb://172.27.0.153:3306/spb?autoReconnect=true&amp;autoReconnectForPools=true</entry>
+        <entry key="db2Url">jdbc:mariadb://10.65.7.6:3306/spb?interactiveClient=true&amp;autoReconnect=true&amp;autoReconnectForPools=true</entry>
+        <entry key="db2Url">jdbc:mariadb://125.133.65.235:3306/spb?autoReconnect=true&amp;autoReconnectForPools=true</entry>
+        <entry key="url">jdbc:mariadb://14.63.180.206:6800/spb?interactiveClient=true&amp;autoReconnect=true&amp;autoReconnectForPools=true</entry>
+        <entry key="db2Username">0b7f442b02ca3f1894ca33386b6812e4</entry>
+        <entry key="db2Password">594b8174c76d38a0b7050837608025ed</entry> -->
+
+	 
+</properties>

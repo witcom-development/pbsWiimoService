@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.scheduler.job.guest.GuestRemoveInfoMapper">
+    <select id="chkGuestVoucherStataus" resultType="String">
+    <![CDATA[  
+       SELECT U.USR_SEQ
+         FROM spb.TB_SVC_VOUCHER V INNER JOIN spb.TB_SVC_USR U ON V.USR_SEQ = U.USR_SEQ
+         WHERE V.PAYMENT_CLS_CD IN ('BIL_007', 'BIL_017')
+         AND U.USR_CLS_CD ='USR_003'
+         AND AUTH_DI_VAL <> '-'
+         AND V.VOUCHER_USE_YN = 'Y'
+         AND V.VOUCHER_END_DTTM + INTERVAL 5 DAY  <= now() 
+    ]]>      
+    </select>
+    <select id="chkGuestOverFeeStatus" resultType="int" parameterType="String">
+    <![CDATA[    
+          SELECT  IFNULL(COUNT(U.USR_SEQ) , 0) AS CNT 
+            FROM spb.TB_SVC_RENT_HIST H INNER JOIN spb.TB_SVC_USR U ON H.USR_SEQ = U.USR_SEQ
+           WHERE H.RENT_HIST_SEQ IN (SELECT RENT_HIST_SEQ
+                                       FROM spb.TB_SVC_RENT_OVER_FEE
+                                      WHERE OVER_FEE_PAYMENT_YN = 'N')
+             AND U.USR_SEQ = #{usrSeq}   
+            
+    ]]>                           
+    </select>    
+    <update id="setGuestRemoveInfo" parameterType="String">
+        UPDATE spb.TB_SVC_USR
+           SET ENC_PWD = NULL                           
+              ,RENT_ENC_PWD = NULL
+              ,AUTH_DI_VAL = '-'
+              ,MOD_DTTM = now()
+              ,USR_BIRTH_DATE = NULL
+         WHERE USR_SEQ = #{usrSeq} 
+    </update>    
+</mapper>

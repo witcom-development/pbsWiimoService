@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+                           http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.0.xsd
+                           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!-- context:component-scan base-package="org.fincl.miss.core.scheduler"/ -->
+    <context:component-scan base-package="org.fincl.miss.core.system"/>
+
+    <!-- Quartz 설정 (스케쥴러) start -->
+    <!-- bean id="schedulerTaskHandler" class="org.fincl.miss.core.scheduler.SchedulerTaskHandler" init-method="init">
+        <property name="serverProperties" ref="serverProps"/>
+        <property name="clusterInstance" ref="cluster"/>
+        <property name="scheduledTaskRepository" ref="scheduledTaskRepository"/>
+    </bean>
+
+    <bean id="schedulerFactory" class="org.springframework.scheduling.quartz.SchedulerFactoryBean" autowire="no" destroy-method="destroy">
+        <property name="jobFactory">
+            <bean class="org.fincl.miss.core.scheduler.SynchronizableJobFactory"/>
+        </property>
+        <property name="exposeSchedulerInRepository" value="true" />
+        <property name="quartzProperties">
+            <props>
+                <prop key="org.quartz.threadPool.class">org.quartz.simpl.SimpleThreadPool</prop>
+                <prop key="org.quartz.threadPool.threadCount">5</prop>
+                <prop key="org.quartz.threadPool.threadPriority">4</prop>
+                <prop key="org.quartz.jobStore.class">org.quartz.simpl.RAMJobStore</prop>
+                <prop key="org.quartz.jobStore.misfireThreshold">60000</prop>
+            </props>
+        </property>
+    </bean -->
+    <!-- Quartz 설정 (스케쥴러) end -->
+
+    <task:annotation-driven />
+    
+    <!-- spring batch. / -->
+    <util:properties id="schedulerProps" location="classpath:config/properties/scheduler.xml"/>
+    <context:property-placeholder properties-ref="schedulerProps"  />
+    <bean id="smartIp" class="java.lang.String">
+      <!-- <constructor-arg value="10.66.7.252"/> 
+      <constructor-arg value="10.66.7.253"/>-->
+    </bean>
+    <bean id="threadTime" class="java.lang.String">
+      <constructor-arg value="30000"/>
+    </bean>
+    <bean id="smsScheduler" class="org.fincl.miss.server.scheduler.BatchScheduler"></bean>
+    <!--Tmoney batch  -->
+    <bean id="transScheduler" class="org.fincl.miss.server.scheduler.TransferScheduler"></bean>
+    <bean id="transDataScheduler" class="org.fincl.miss.server.scheduler.TransferDataScheduler" ></bean>
+    <!--거치대 임시 예약, 대여예약 삭제 스케줄러-->
+    <bean id="bookingCancelScheduler" class="org.fincl.miss.server.scheduler.BookingCancelSchedule" ></bean>
+    <!--비회원 개인정보 Null 처리  -->
+    <bean id="guestRemoveInfoScheduler" class="org.fincl.miss.server.scheduler.GuestRemoveInfoScheduler"></bean>
+    <!-- 대여종려 이전건 sms,push 스케줄러 -->
+    <bean id="pushMsgSendScheduler" class="org.fincl.miss.server.scheduler.ReturnAlarmScheduler"></bean>
+    <!--회원 재동의 처리  -->
+    <bean id="infoColectConfirmBatch" class="org.fincl.miss.server.scheduler.InfoColectAgreeScheduler"></bean>
+    <!--초과 요금 결제 -->
+    <bean id="exeAutoRentOverFeePay" class="org.fincl.miss.server.scheduler.AutoOverFeePayScheduler"></bean>
+    <!--장애처리(자전거)  -->
+    <bean id="bikeBatterErrorBatchProc" class="org.fincl.miss.server.scheduler.BikeBatteryErrorScheduler"></bean>
+    <!--장애처리(정기점검)-->
+    <bean id="regularDeviceChkScheduler" class="org.fincl.miss.server.scheduler.RegularDeviceChkScheduler"></bean>
+    <!--Deposit결제 취소-->
+    <bean id="refundDepositScheduler" class="org.fincl.miss.server.scheduler.RefundUsrDepositScheduler"></bean>
+    
+    <!-- 통계배치   -->
+    <bean id="bikeSystemStatsScheduler" class="org.fincl.miss.server.scheduler.BikeSystemStatsScheduler"></bean>
+    <!-- 티머니 결재 배치 -->
+    <bean id="tmoneyResultChkScheduler" class="org.fincl.miss.server.scheduler.TmoneyResultChkScheduler"></bean>
+    <!--도난 경보 -->
+    <bean id="bikeRobSmsAlarmScheduler" class="org.fincl.miss.server.scheduler.BikeRobAlarmScheduler"></bean>
+    
+    <!-- 정기권종료 이전안내_20161108_JJH -->
+<!--     <bean id="voucherEndAlarmScheduler" class="org.fincl.miss.server.scheduler.VoucherEndAlarmScheduler"></bean> -->
+    
+    <!-- 주기적인 상태보고 10안에 안들어오는 자전거처리_20161118_JJH -->
+    <bean id="periodTenMinuteErrorAlarmScheduler" class="org.fincl.miss.server.scheduler.PeriodTenMinuteErrorAlarmScheduler"></bean>
+    
+    <!-- 자전거 배터리 통계정보 추출_20170113_JJH -->
+    <bean id="bikeBatteryDDScheduler" class="org.fincl.miss.server.scheduler.BikeBatteryDDScheduler"></bean>
+    
+    <bean id="blackListScheduler" class="org.fincl.miss.server.scheduler.BlackListScheduler"></bean>
+    
+    <!-- 추천반납대여소 정책정보_20170215_JJH -->
+<!--     <bean id="recommendPolicyScheduler" class="org.fincl.miss.server.scheduler.RecommendPolicyScheduler"></bean> -->
+    
+    <!-- 대여일련번호 관련_20170519_JJH -->
+    <bean id="serialNoProcScheduler" class="org.fincl.miss.server.scheduler.SerialNoProcScheduler"></bean>
+    
+    <task:scheduled-tasks>
+        <task:scheduled ref="smsScheduler" method="reSendSMS"  cron="#{schedulerProps['reSendSMS_Trigger']}" />
+        
+       <!--  임시예약 취소    1분간격 -->
+        <task:scheduled ref="bookingCancelScheduler" method="bookingRentScheduler" cron="#{schedulerProps['bookingCancel_Trigger']}" />
+        <!-- 예약 취소 1분간격 -->
+        <task:scheduled ref="bookingCancelScheduler" method="bookingRentCancelScheduler" cron="#{schedulerProps['rentCancel_Trigger']}" />
+        <!-- 비회원 처리 1분간격 -->
+        <!-- <task:scheduled ref="guestRemoveInfoScheduler" method="guestExpiredUseProc" cron="#{schedulerProps['guestRemove_Trigger']}" />
+       
+        <task:scheduled ref="regularDeviceChkScheduler" method="BikeRegularChkProc" cron="#{schedulerProps['regularChk_Trigger']}" />
+        <task:scheduled ref="regularDeviceChkScheduler" method="APRegularChkProc" cron="#{schedulerProps['regularChk_Trigger']}" />
+        <task:scheduled ref="regularDeviceChkScheduler" method="RackRegularChkProc" cron="#{schedulerProps['regularChk_Trigger']}" />
+       -->
+        
+        <!-- <task:scheduled ref="transScheduler" method="dbToSendFile" cron="#{schedulerProps['transDBToSendFile_Trigger']}" /> -->
+        <!-- task:scheduled ref="transScheduler" method="recvFileToDb" cron="#{schedulerProps['transRecvFileToDB_Trigger']}" />
+        <task:scheduled ref="transDataScheduler" method="tcpBatchProtocolServer" cron="#{schedulerProps['tmoneyTcpServer_Trigger']}" / -->
+        <!-- <task:scheduled ref="transDataScheduler" method="tcpBatchProtocolClient" cron="#{schedulerProps['tmoneyTcpClient_Trigger']}" /> -->
+        <!-- 대여종료 처리(대여 종료 10분전 알림)2분 간격 -->
+        <!-- <task:scheduled ref="pushMsgSendScheduler" method="returnAlarmPushProc" cron="#{schedulerProps['pushMessage_Trigger']}" /> -->
+        <!-- 보증금 취소 매일 04시00분 -->
+        <!-- <task:scheduled ref="refundDepositScheduler" method="getRefundUsrList"  cron="#{schedulerProps['refund_Trigger']}" />
+        <task:scheduled ref="refundDepositScheduler" method="getRefundUseVoucherList"  cron="#{schedulerProps['refundVoucher_Trigger']}" />
+ -->
+        <!-- 회원 재동의자 처리 (매일06:00)    -->
+    <!--     <task:scheduled ref="infoColectConfirmBatch" method="infoColectConfirmBatch"  cron="#{schedulerProps['infoColect_Trigger']}" />
+
+ -->        <!-- 초과요금결제(2분간격) -->
+         <!-- <task:scheduled ref="exeAutoRentOverFeePay" method="exeAutoRentOverFeePay"  cron="#{schedulerProps['autoPay_Trigger']}" /> -->
+        <!-- 장애처리(자전거 배터리 장애등록) 10분간격 -->
+    <!--     <task:scheduled ref="bikeBatterErrorBatchProc" method="bikeBatterErrorBatchProc"  cron="#{schedulerProps['deviceError_Trigger']}" /> 
+
+ -->        <!--장애처리(정기점검) 매일 04시30분-->
+    <!--     <task:scheduled ref="bikeBatterErrorBatchProc" method="iotBikeBatterErrorBatchProc"  cron="#{schedulerProps['deviceIotError_Trigger']}" /> --> 
+        <!-- 티머니 결재 배치 5분간격-->
+        <!-- <task:scheduled ref="tmoneyResultChkScheduler" method="procTmoneyResultStatusChk"  cron="#{schedulerProps['tmoneyStatusChk_Trigger']}" />
+        <task:scheduled ref="tmoneyResultChkScheduler" method="procTmoneyCancelReq"  cron="#{schedulerProps['tmoneyStatusChk_Trigger']}" /> -->
+         <!-- 도난경보 배치 3분간격-->
+<!--         <task:scheduled ref="bikeRobSmsAlarmScheduler" method="bikeRobSmsAlarm"  cron="#{schedulerProps['bikeRobAlarm_Trigger']}" /> -->
+        <!--추가 2015-12-15 블랙 리스트 -->
+<!--         <task:scheduled ref="blackListScheduler" method="exeBlackListAutoRemove"  cron="#{schedulerProps['blackListDel_Trigger']}" /> -->
+        <!--추가 2015-12-15  -->
+        
+        <!-- 정기권종료 이전안내_20161108_JJH -->
+        <!-- <task:scheduled ref="voucherEndAlarmScheduler" method="voucherEndAlarm"  cron="#{schedulerProps['voucherEndAlarm_Trigger']}" /> -->
+        
+        <!-- 주기적인 상태보고 10분동안 안올리면... _20161118_JJH -->
+        <!-- <task:scheduled ref="periodTenMinuteErrorAlarmScheduler" method="periodTenMinuteError"  cron="#{schedulerProps['periodTenMinuteErrorAlarm_Trigger']}" /> --> 
+        
+        <!-- 통계 -->
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_BIKE_USE_MM" cron="#{schedulerProps['bikeUseMM_Trigger']}" />
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_BIKE_USE_HH" cron="#{schedulerProps['bikeUseHH_Trigger']}" />
+        
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_BIKE_USE_DD" cron="#{schedulerProps['bikeUseDD_Trigger']}" />
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_NEW_MB_DD" cron="#{schedulerProps['newMbDD_Trigger']}" />
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_NEW_MB_MM" cron="#{schedulerProps['newMbMM_Trigger']}" />
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_STATION_GRP_MOVE_MM" cron="#{schedulerProps['stationGrpMoveMM_Trigger']}" />
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_STATION_GRP_MOVE_DD" cron="#{schedulerProps['stationGrpMoveDD_Trigger']}" />
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_STATION_RENT_MM" cron="#{schedulerProps['stationRentMM_Trigger']}" />
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_STATION_RENT_DD" cron="#{schedulerProps['stationRentDD_Trigger']}" />
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_PAYMENT_MM" cron="#{schedulerProps['paymentMM_Trigger']}" />
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_PAYMENT_DD" cron="#{schedulerProps['paymentDD_Trigger']}" />
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_FAULT_MM" cron="#{schedulerProps['faultMM_Trigger']}" />
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_FAULT_DD" cron="#{schedulerProps['faultDD_Trigger']}" />
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_REPAIR_MM" cron="#{schedulerProps['refairMM_Trigger']}" />
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_REPAIR_DD" cron="#{schedulerProps['refairDD_Trigger']}" />
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_FOREIGN_RENT_MM" cron="#{schedulerProps['foreignRentMM_Trigger']}" />
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_FOREIGN_RENT_DD" cron="#{schedulerProps['foreignRentDD_Trigger']}" /> 
+       <!--  <task:scheduled ref="smsScheduler" method="dropPartition" cron="#{schedulerProps['dropPartition_Trigger']}" />
+        <task:scheduled ref="smsScheduler" method="createDailyPartition" cron="#{schedulerProps['createDailyPartition_Trigger']}" />
+        <task:scheduled ref="smsScheduler" method="createDailyPartitionWithToDays" cron="#{schedulerProps['createDailyPartitionWithToDays_Trigger']}" />
+        <task:scheduled ref="smsScheduler" method="createMonthPartition" cron="#{schedulerProps['createMonthPartition_Trigger']}" />
+        <task:scheduled ref="smsScheduler" method="createMonthPartitionWithToDays" cron="#{schedulerProps['createMonthPartitionWithToDays_Trigger']}" />
+        <task:scheduled ref="smsScheduler" method="deleteLog" cron="#{schedulerProps['deleteLog_Trigger']}" /> -->
+        <!--추가 2015-12-15  -->
+        
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeOperationMaxBikeDD" cron="#{schedulerProps['operationMaxBikeDD_Trigger']}" />
+        
+        <task:scheduled ref="bikeSystemStatsScheduler" method="exeTB_STA_RANK_MB_MM" cron="#{schedulerProps['bikeUseRank_Trigger']}" />
+        <!--추가 2015-12-15  -->
+        
+        <!-- 추가 2016-01-13_JJH -->
+        <task:scheduled ref="bikeBatteryDDScheduler" method="bikeBatteryDDProc" cron="#{schedulerProps['BikeBatteryDD_Trigger']}" />
+        
+        <!-- 추가 2017-02-15_JJH -->
+<!--         <task:scheduled ref="recommendPolicyScheduler" method="recommendTimePolicyProc" cron="#{schedulerProps['recommendTimePolicy_Trigger']}" /> -->
+<!--         <task:scheduled ref="recommendPolicyScheduler" method="recommendWeeklyPolicyProc" cron="#{schedulerProps['recommendWeeklyPolicy_Trigger']}" /> -->
+        
+        <!-- 추가 2017-05-19 -->
+        <task:scheduled ref="serialNoProcScheduler" method="resetMemberInfoProc" cron="#{schedulerProps['deleteSerialNo_Trigger']}" />
+        
+    </task:scheduled-tasks>
+    
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+    
+    <bean id="jobSyncronizationAspect" class="org.fincl.miss.server.scheduler.annotation.JobSyncronizationAspect"></bean>
+</beans>

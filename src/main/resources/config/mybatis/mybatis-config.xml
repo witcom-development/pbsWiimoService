@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//www.mybatis.org//DTD Config 3.0//EN" "mybatis-3-config.dtd">
+<configuration >
+	<settings>
+		<setting name="cacheEnabled" value="false"/>
+		<setting name="defaultExecutorType" value="REUSE"/>
+	</settings>
+	<plugins>
+		<plugin interceptor="org.fincl.miss.server.logging.profile.MybatisLogInterceptor"></plugin>
+	</plugins>
+    <mappers>
+        <mapper resource="config/mybatis/sql/manual/SystemStatsManual_SQL.xml"/>
+    </mappers>
+</configuration>

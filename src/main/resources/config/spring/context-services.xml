@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" 
+	xmlns:task="http://www.springframework.org/schema/task" 
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+						   http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
+						   http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<util:properties id="serviceProps" location="classpath:config/properties/service.xml"/>
+	
+	<bean id="serviceRegister" class="org.fincl.miss.server.service.ServiceRegister">
+		<constructor-arg index="0"
+			value="#{serviceProps['serviceRegister.contextConfigurationClassPath']}" />
+		<constructor-arg index="1"
+			value="#{serviceProps['serviceRegister.classesRootPath']}" />
+		<!-- file:/C:/a.txt <- On Windows file:///C:/a.txt <- On Windows file:///home/user/a.txt 
+			<- On Linux -->
+		<constructor-arg index="2" value="#{serviceProps['serviceRegister.basePackageName']}" />
+	</bean>
+
+	<!-- <bean id="registry" class="org.springframework.remoting.rmi.RmiRegistryFactoryBean" 
+		lazy-init="false"> <property name="port" value="1199" /> </bean> <bean id="clientConnector" 
+		class="org.springframework.jmx.support.MBeanServerConnectionFactoryBean" 
+		depends-on="registry" > <property name="serviceUrl" value="service:jmx:rmi://localhost/jndi/rmi://localhost:1199/jmxrmi" 
+		/> </bean> -->
+
+	<!-- <bean id="serverConnector"
+		class="org.springframework.jmx.support.ConnectorServerFactoryBean"
+		depends-on="rmiRegistry">
+		<property name="objectName" value="connector:name=rmi" />
+		<property name="serviceUrl"
+			value="service:jmx:rmi://localhost/jndi/rmi://localhost:10099/miss-connector" />
+	</bean>
+
+	<bean id="clientConnector"
+		class="org.springframework.jmx.support.MBeanServerConnectionFactoryBean"
+		depends-on="serverConnector" lazy-init="false">
+		<property name="serviceUrl"
+			value="service:jmx:rmi://localhost/jndi/rmi://localhost:10099/miss-connector" />
+	</bean>
+
+	<bean id="rmiRegistry" class="org.springframework.remoting.rmi.RmiRegistryFactoryBean">
+		<property name="port" value="10099" />
+	</bean>
+
+	<bean id="mBeanServer" class="org.springframework.jmx.support.MBeanServerFactoryBean">
+		<property name="locateExistingServerIfPossible" value="true" />
+	</bean>
+
+	<bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"
+		depends-on="clientConnector">
+		<property name="beans">
+			<map>
+			</map>
+		</property>
+		<property name="server" ref="mBeanServer" />
+		<property name="registrationBehaviorName" value="REGISTRATION_FAIL_ON_EXISTING" /> default
+		REGISTRATION_FAIL_ON_EXISTING 기본 등록 동작이다. MBean 인스턴스가 같은 ObjectName으로 
+			이미 등록되어 있다면 등록하려던 MBean을 등록하지 않고 InstanceAlreadyExistsException를 던질 것이다. 
+			존재하는 MBean에는 영향을 주지 않는다. REGISTRATION_IGNORE_EXISTING MBean 인스턴스가 같은 ObjectName으로 
+			이미 등록되어 있다면 등록하려던 MBean을 등록하지 않는다. 기존의 MBean에는 영향을 주지 않고 Exception도 던지지 않는다. 
+			이 동작은 공유된 MBeanServer에서 여러 어플리케이션이 공통적인 MBean을 공유할 때 유용하다. REGISTRATION_REPLACE_EXISTING 
+			MBean 인스턴스가 같은 ObjectName으로 이미 등록되어 있다면 미리 등록되어 있던 MBean이 등록 해지되고 새로운 MBean이 
+			해당 위치에 등록될 것이다. (이전의 인스턴스를 새로운 MBean이 효율적으로 바꿔치기 한다.)
+	</bean> -->
+
+
+
+	<task:executor id="invokerTaskExecutor" pool-size="10-25"
+		queue-capacity="1000" rejection-policy="ABORT" />
+		
+	<task:executor id="handlerTaskExecutor" pool-size="10-25"
+		queue-capacity="1000" rejection-policy="ABORT" />
+		
+	<task:executor id="serviceLoggingTaskExecutor" pool-size="10-25"
+		queue-capacity="1000" rejection-policy="ABORT" />
+
+	<bean id="traceLog" class="org.fincl.miss.server.logging.profile.TraceLog"
+		scope="prototype" lazy-init="false">
+	</bean>
+
+	<bean id="poolTraceLog" class="org.springframework.aop.target.CommonsPoolTargetSource" destroy-method="destroy"
+		lazy-init="false" >
+		<property name="targetBeanName" value="traceLog" />
+		<property name="maxSize" value="100" /> <!-- default no limit --> 
+		<property name="maxIdle" value="100" />
+		<property name="minIdle" value="50" />
+	</bean>
+	
+	<bean id="prototypeTargetSource" class="org.springframework.aop.target.PrototypeTargetSource">
+  			<property name="targetBeanName" value="traceLog"/>
+	</bean>
+	
+	
+	<bean name="profilingInterceptor" class="org.fincl.miss.server.logging.profile.ProfilingInterceptor"/>
+
+ 	<aop:config proxy-target-class="true">
+		<!-- <aop:pointcut id="profileingPointCut" expression="execution(* org.fincl.miss.server.service.*.handle(..))" /> -->
+		<aop:pointcut id="profileingPointCut" expression="@annotation(org.fincl.miss.server.annotation.EnableTraceLogging)" />
+		<aop:advisor advice-ref="profilingInterceptor" pointcut-ref="profileingPointCut"/>
+	</aop:config>
+	
+	<bean id="databaseServiceRepositoryService"
+		  class="org.fincl.miss.core.service.impl.PermanentServiceRepositoryServiceImpl"/>
+
+	<bean id="serviceRepositoryService"
+		  class="org.fincl.miss.core.service.impl.TransientServiceRepositoryServiceImpl"
+		  init-method="initialize">
+		<property name="synchronizeServiceRepositoryService" ref="databaseServiceRepositoryService"/>
+		<property name="serviceRepository" ref="serviceRepository"/>
+		<property name="serviceGroupRepository" ref="serviceGroupRepository"/>
+		<property name="serviceTesterRepository" ref="serviceTesterRepository"/>
+	</bean>
+
+	<bean id="candidateServiceRepositoryService"
+		  class="org.fincl.miss.server.service.metadata.impl.ConfiguredServiceRepositoryServiceImpl">
+		<property name="serviceRepository" ref="candidateServiceRepository"/>
+		<property name="serviceGroupRepository" ref="candidateServiceGroupRepository"/>
+	</bean>
+
+	<bean id="serviceMetadataResolver"
+		  class="org.fincl.miss.server.service.metadata.impl.ServiceMetadataResolverImpl">
+		<property name="serviceRepositoryService" ref="serviceRepositoryService"/>
+		<property name="candidateServiceRepositoryService" ref="candidateServiceRepositoryService"/>
+		<property name="autoRegister" value="true"/>
+	</bean>
+	
+	<bean id="inBoundChannelExceptionTransfer" class="org.fincl.miss.server.exeption.InBoundChannelExceptionTransfer" />
+
+   <aop:config>
+      <aop:aspect ref="inBoundChannelExceptionTransfer">
+         <!--// 적용대상 메소드 설정 -->
+         <aop:pointcut id="pcChannel" expression="execution(public * org.fincl.miss.server.channel.inbound..*Handler.channelRead*(..))" />
+          <!--// exception 매개변수의 예외 타입으로 예외 발생 시 transfer 메소드 호출 -->
+         <aop:after-throwing method="transfer" throwing="exception" pointcut-ref="pcChannel" />       
+      </aop:aspect>
+   </aop:config>
+
+</beans>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+	<entry key="host">125.133.65.245</entry>
+	<entry key="port">7017</entry>
+	<entry key="username">miss</entry>
+	<entry key="password">miss1234</entry>
+	<entry key="databaseName">miss</entry>
+</properties>

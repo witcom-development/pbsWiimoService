@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "mybatis-3-mapper.dtd">
+<mapper namespace="org.fincl.miss.server.scheduler.job.refundDeposit.service.UsrRefundDepositMapper">
+    <select id="getRefundUsrList" resultType="Map">
+    <![CDATA[    
+        SELECT PAY.PAYMENT_SEQ       AS paymentSeq
+               ,PAY.PAYMENT_CONFM_NO AS tId
+               ,PAY.USR_SEQ          AS usrSeq
+               ,PAY.PAYMENT_DTTM     AS paymentDttm
+               ,PAY.PAYMENT_CLS_CD   AS paymentClsCd
+           FROM spb.TB_SVC_PAYMENT PAY 
+          WHERE PAY.USR_SEQ IN ( SELECT U.USR_SEQ 
+                                   FROM spb.TB_SVC_USR U INNER JOIN spb.TB_SVC_VOUCHER V ON U.USR_SEQ = V.USR_SEQ
+                                  INNER JOIN spb.TB_SVC_PAYMENT P ON V.PAYMENT_SEQ = P.PAYMENT_SEQ
+                                 WHERE U.USR_CLS_CD ='USR_002'
+                                   AND V.VOUCHER_STR_DTTM IS NULL
+                                   AND DATE_ADD(V.PAYMENT_DTTM, INTERVAL (SELECT ADD_VAL2
+                                                                            FROM spb.TB_SYS_COM_CD
+                                                                           WHERE USE_YN ='Y'
+                                                                             AND COM_CD = V.PAYMENT_CLS_CD) DAY) < NOW())
+          AND PAY.PAYMENT_CLS_CD   = 'BIL_010'
+          AND PAY.PAYMENT_STUS_CD != 'BIS_003'                                                                   
+            
+    ]]>                                                           
+    </select>    
+    <select id="getVoucherInfo"  parameterType="Map"  resultType="Map">
+    <![CDATA[    
+         SELECT V.VOUCHER_SEQ      AS voucherSeq
+               ,P.PAYMENT_CONFM_NO AS tId
+               ,P.PAYMENT_SEQ      AS paymentSeq
+               ,P.TOT_AMT          AS paymentAmt
+               ,U.USR_SEQ          AS usrSeq
+          FROM spb.TB_SVC_USR U 
+         INNER JOIN spb.TB_SVC_VOUCHER V ON U.USR_SEQ = V.USR_SEQ
+         INNER JOIN spb.TB_SVC_PAYMENT P ON V.PAYMENT_SEQ = P.PAYMENT_SEQ
+          WHERE U.USR_CLS_CD ='USR_002'
+            AND V.USR_SEQ =#{usrSeq}
+            AND V.VOUCHER_STR_DTTM IS NULL
+            AND (DATE_ADD(V.PAYMENT_DTTM, INTERVAL (SELECT ADD_VAL2
+                                                    FROM spb.TB_SYS_COM_CD
+                                                    WHERE USE_YN ='Y'
+                                                     AND COM_CD = V.PAYMENT_CLS_CD) DAY) < NOW())
+    ]]>                                               
+    </select>     
+    <delete id="setVoucherUseComplete" parameterType="Map">
+        DELETE FROM TB_SVC_VOUCHER WHERE VOUCHER_SEQ = #{voucherSeq}                                                                                           
+    </delete>
+    
+    <!-- 보증금 결제취소 리스트정보 변경_20161020_JJH_START --> 
+    <!--    
+    <select id="getRefundUseVoucherList" resultType="Map">
+    <![CDATA[    
+         SELECT PAY.PAYMENT_SEQ      AS paymentSeq
+               ,PAY.PAYMENT_CONFM_NO AS tId
+               ,PAY.USR_SEQ          AS usrSeq
+               ,PAY.PAYMENT_DTTM     AS paymentDttm
+               ,PAY.PAYMENT_CLS_CD   AS paymentClsCd
+           FROM spb.TB_SVC_PAYMENT PAY
+          WHERE PAY.USR_SEQ IN ( SELECT U.USR_SEQ 
+                                  FROM spb.TB_SVC_USR U,spb.TB_SVC_VOUCHER V
+                                     , spb.TB_SVC_PAYMENT P
+                                  WHERE U.USR_SEQ = V.USR_SEQ
+                                   AND U.USR_SEQ = P.USR_SEQ
+                                   AND V.PAYMENT_SEQ = P.PAYMENT_SEQ
+                                   AND U.USR_CLS_CD = 'USR_002'
+                                   AND V.VOUCHER_END_DTTM < NOW())
+            AND PAY.PAYMENT_CLS_CD   = 'BIL_010'
+            AND PAY.PAYMENT_STUS_CD != 'BIS_003'
+    ]]> 
+    </select>    
+     -->
+    <select id="getRefundUseVoucherList" resultType="Map">
+    <![CDATA[    
+        SELECT PAY.PAYMENT_SEQ      AS paymentSeq
+               ,PAY.PAYMENT_CONFM_NO AS tId
+               ,PAY.USR_SEQ          AS usrSeq
+               ,PAY.PAYMENT_DTTM     AS paymentDttm
+               ,PAY.PAYMENT_CLS_CD   AS paymentClsCd
+		FROM TB_SVC_PAYMENT PAY
+		WHERE 1=1
+		AND PAY.USR_SEQ IN (SELECT V.USR_SEQ
+		      FROM TB_SVC_VOUCHER V LEFT JOIN TB_SVC_USR U ON V.USR_SEQ = U.USR_SEQ
+		      WHERE 1=1
+		      AND U.USR_CLS_CD = 'USR_002'
+		      AND V.VOUCHER_END_DTTM < NOW()
+		      AND V.VOUCHER_STR_DTTM IS NOT NULL
+		      AND V.PAYMENT_DTTM + INTERVAL 1 DAY < NOW()
+		      )
+		AND PAY.PAYMENT_CLS_CD = 'BIL_010'
+		AND PAY.PAYMENT_STUS_CD != 'BIS_003' 
+    ]]>  
+    </select>
+    <!-- 보증금 결제취소 리스트정보 변경_20161020_JJH_END -->
+    
+    
+    <select id="getRentChk" parameterType="Map" resultType="String">
+       SELECT RENT_SEQ  
+         FROM TB_SVC_RENT
+        WHERE USR_SEQ = #{usrSeq}
+    </select>
+    <select id="getRentHistChk" parameterType="Map" resultType="int">
+         SELECT IFNULL(COUNT(RENT_HIST_SEQ), 0)
+           FROM TB_SVC_RENT_OVER_FEE
+          WHERE RENT_HIST_SEQ IN (SELECT RENT_HIST_SEQ  
+                                    FROM TB_SVC_RENT_HIST
+                                   WHERE USR_SEQ = #{usrSeq}) 
+            AND OVER_FEE_PAYMENT_YN = 'N'                       
+    </select>      
+    <update id="addRefundHist" parameterType="Map">
+        UPDATE TB_SVC_PAYMENT
+           SET PAYMENT_STUS_CD  ='BIS_003' 
+              ,CANCEL_DTTM = NOW()
+              ,CANCEL_REASON_DESC ='보증금 환불'
+              ,CANCEL_ADMIN_ID = 'AUTO'
+         WHERE PAYMENT_SEQ = #{paymentSeq}  
+    </update>
+    <update id="setSealedVoucherCancel" parameterType="Map">
+        UPDATE TB_SVC_PAYMENT
+           SET PAYMENT_STUS_CD  ='BIS_003' 
+              ,CANCEL_DTTM = NOW()
+              ,CANCEL_REASON_DESC ='외국인 미사용권 자동 취소'
+              ,CANCEL_ADMIN_ID = 'AUTO'
+         WHERE PAYMENT_SEQ = #{paymentSeq}  
+    </update>
+    <insert id="addTicketPaymentFail" parameterType="Map" useGeneratedKeys="true" keyProperty="paymentFailHistSeq">
+        INSERT INTO TB_SVC_PAYMENT_FAIL_HIST (
+                 USR_SEQ
+                ,PAYMENT_DTTM
+                ,PAYMENT_METHOD_CD
+                ,PAYMENT_CLS_CD
+                ,PAYMENT_AMT
+                ,RENT_HIST_SEQ
+                ,ERR_CD
+                ,ERR_MSG
+        ) VALUES (
+                #{usrSeq}
+               ,now()
+               ,'BIM_002'
+               ,'BIL_010'
+               ,#{paymentAmt}
+               ,null
+               ,#{resultCD}
+               ,#{processReasonDesc}
+        )
+    </insert>
+    
+    <update id="serialNoPaymentCancel" parameterType="Map">
+        UPDATE TB_SVC_PAYMENT
+           SET PAYMENT_STUS_CD  ='BIS_003' 
+              ,CANCEL_DTTM = NOW()
+              ,CANCEL_REASON_DESC ='대여번호 미사용 이용권 자동 취소'
+              ,CANCEL_ADMIN_ID = 'AUTO'
+         WHERE PAYMENT_SEQ = #{paymentSeq}  
+    </update>
+</mapper>
+

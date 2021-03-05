@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans default-lazy-init="true" xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:aop="http://www.springframework.org/schema/aop" 
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xmlns:util="http://www.springframework.org/schema/util"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+						   http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+						   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+						   http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+						   http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+
+	<context:component-scan base-package="org.fincl.miss.service.biz">
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.web.bind.annotation.ControllerAdvice" />
+	</context:component-scan>
+	
+	<aop:config proxy-target-class="true">
+		<aop:pointcut id="profileingPointCut" expression="execution(* org.fincl.miss.service.biz..*Service.*(..))" />
+		<aop:advisor advice-ref="profilingInterceptor" pointcut-ref="profileingPointCut"/>
+	</aop:config>
+	
+	<util:properties id="serviceProps" location="classpath:config/properties/service.xml"/>
+	
+	<util:properties id="databaseProps" location="classpath:config/properties/database.xml"/>
+
+	<bean id="bizDataSource" class="org.fincl.miss.server.util.DecodeDataSource">
+		<property name="driverClassName" value="#{databaseProps.driverClassName}"/>
+		<property name="url" value="#{databaseProps.url}"/>
+		<property name="username" value="#{databaseProps.username}"/>
+		<property name="password" value="#{databaseProps.password}"/>
+		<property name="initialSize" value="20"/>
+		<property name="maxActive" value="100"/>
+		<property name="minIdle" value="20"/>
+		<property name="testOnBorrow" value="true"/>
+		<property name="testWhileIdle" value="true"/>
+		<property name="timeBetweenEvictionRunsMillis" value="60000"/>
+		<property name="minEvictableIdleTimeMillis" value="300000"/>
+	</bean>
+
+	<bean id="bizTxManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="bizDataSource"/>
+	</bean>
+	
+	<!-- ServiceRegister에서 org.apache.ibatis.io.Resources.setDefaultClassLoader를 통해 Biz ClassLoader를 지정해야 classpath를 사용할 수 있음. 그 외에는 file 경로를 사용해야 함. -->
+	<bean id="bizSqlSession" class="org.fincl.miss.core.mybatis.RefreshableSqlSessionFactoryBean">
+		<property name="dataSource" ref="bizDataSource"/>
+		<property name="configLocation" value="classpath:config/mybatis/mybatis-config.xml"/>
+		<property name="mapperLocations">
+			<array>
+   				 <value>classpath:config/mybatis/sql/bicycle/Common_Bicycle_SQL.xml</value>
+   				 <value>classpath:config/mybatis/sql/bicycle/Bicycle_Rent_SQL.xml</value>
+   				 <value>classpath:config/mybatis/sql/bicycle/File_Update_SQL.xml</value>
+   				 <value>classpath:config/mybatis/sql/bicycle/Smart_SQL.xml</value>
+  			</array>
+		</property>
+	</bean>
+
+	<bean id="bizMapperScanner" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="org.fincl.miss.service.biz"/>
+		<property name="annotationClass" value="egovframework.rte.psl.dataaccess.mapper.Mapper" />
+		<property name="sqlSessionFactoryBeanName" value="bizSqlSession"/>
+	</bean>
+	
+	
+	<tx:advice id="txAdvice" transaction-manager="bizTxManager">
+		<tx:attributes>
+			<tx:method name="get*" propagation="SUPPORTS" read-only="true"/>
+			<tx:method name="select*" propagation="SUPPORTS" read-only="true"/>
+			<tx:method name="add*" rollback-for="Exception"/>
+			<tx:method name="set*"  rollback-for="Exception"/>
+			<tx:method name="insert*" rollback-for="Exception"/>
+			<tx:method name="modify*" rollback-for="Exception"/>
+			<tx:method name="update*" rollback-for="Exception"/>
+			<tx:method name="change*" rollback-for="Exception"/>
+			<tx:method name="delete*" rollback-for="Exception"/>
+			<tx:method name="remove*" rollback-for="Exception"/>
+			<tx:method name="init*" rollback-for="Exception"/>
+		</tx:attributes>
+	</tx:advice>
+
+	<aop:config proxy-target-class="true">
+		<aop:pointcut id="txPointCut" expression="execution(* org.fincl.miss..*ServiceImpl.*(..))"/>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPointCut"/>
+	</aop:config>
+
+</beans>
