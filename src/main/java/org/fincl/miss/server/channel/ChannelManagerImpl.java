@@ -126,6 +126,7 @@ public class ChannelManagerImpl implements ChannelManager {
     }
     
     private void openTrafficMonitoringWebSocket() {
+    	/*
         Channel channel = new Channel();
         channel.setPort(Integer.parseInt(serverProps.getProperty("monitoring.traffic.port", "3333")));
         channel.setAutoStartYn("Y");
@@ -138,6 +139,7 @@ public class ChannelManagerImpl implements ChannelManager {
         channel.setResponseDataTypeCode(ResponseDataType.JSON.getValue());
         
         inBoundTrafficMonitoringChannel = ApplicationContextSupport.getBean(ListenInBoundChannel.class, new Object[] { serviceHandler, channel });
+        */
     }
     
     public List<OutBoundChannelImpl> getOutBoundChannelList() {
