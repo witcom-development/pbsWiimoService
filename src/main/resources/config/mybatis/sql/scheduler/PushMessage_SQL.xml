@@ -51,24 +51,26 @@
      
      <select id="getBikeRentSend" resultType="java.util.HashMap" >
      <![CDATA[ 
-     	SELECT RENT_SEQ, USR_SEQ, VOUCHER_SEQ, RENT_STATION_ID, RENT_RACK_ID, RENT_BIKE_ID
-			FROM TB_SVC_RENT
+     	SELECT RENT_SEQ, USR_SEQ, VOUCHER_SEQ, RENT_STATION_ID, RENT_RACK_ID, RENT_BIKE_ID ,DEVICE.DEVICE_MPN_NO
+			FROM TB_SVC_RENT RENT ,TB_IOT_DEVICE DEVICE
 			WHERE RENT_YN = 'N'
+			AND RENT_SEND_YN = 'N'
+			AND RENT.RENT_BIKE_ID = DEVICE.DEVICE_ID
 			ORDER BY RENT_SEQ ASC
 
      ]]>                                        
      </select>
      
      <update id="setBikeRentSendComplete" parameterType="String">
-         UPDATE spb.TB_SVC_RENT
+         UPDATE TB_SVC_RENT
            SET RENT_SEND_YN = 'Y' 
-         WHERE RENT_SEQ = #{rentBikeID}  
+         WHERE RENT_SEQ = #{Rent_Seq}  
      </update>
     
       
       
      <update id="setReturnAlarmMsgComplete" parameterType="org.fincl.miss.server.scheduler.job.pushProc.ReturnMsgVO">
-         UPDATE spb.TB_SVC_RENT
+         UPDATE TB_SVC_RENT
            SET RENT_END_SMS_SEND_YN = 'Y' 
          WHERE RENT_BIKE_ID = #{rentBikeID}  
      </update>

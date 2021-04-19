@@ -15,7 +15,7 @@ public class SendSMSVo implements java.io.Serializable {
         responseFields.put("cmd_id", 1);
         responseFields.put("state", 1);
         responseFields.put("dev_state", 1);
-        responseFields.put("dev_id", 7);
+        //responseFields.put("dev_id", 7);
         responseFields.put("dev_type", 1);
         responseFields.put("user_type", 1);
         responseFields.put("user_seq", 5);
@@ -25,7 +25,7 @@ public class SendSMSVo implements java.io.Serializable {
     private String cmd_id;
     private String state;
     private String dev_state;
-    private String dev_id;
+    //private String dev_id;
     private String dev_type;
     private String user_type;
     private String user_seq;
@@ -48,12 +48,14 @@ public class SendSMSVo implements java.io.Serializable {
 	public void setDev_state(String dev_state) {
 		this.dev_state = dev_state;
 	}
+	/*
 	public String getDev_id() {
 		return dev_id;
 	}
 	public void setDev_id(String dev_id) {
 		this.dev_id = dev_id;
 	}
+	*/
 	public String getDev_type() {
 		return dev_type;
 	}

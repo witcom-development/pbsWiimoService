@@ -114,20 +114,17 @@
 	<!-- SMS => 카카오 알림톡 변경_20171016_JJH_END -->
 	
 	<insert id="insertSmsMessage" parameterType="org.fincl.miss.server.scheduler.job.sms.SmsMessageVO" useGeneratedKeys="true" keyProperty="seqno">
-		INSERT INTO TELINK
+		INSERT INTO TB_SVC_SMS
 			(
-				CMP_MSG_ID,WRT_DTTM,SND_DTTM,SND_PHN_ID,RCV_PHN_ID,CALLBACK,SND_MSG,RSRVD_ID
+				SNDTIME,RESTIME,HPNO,CALLBACK,MSG,RESULT
 			)
 		values
 			(
-				CONCAT('9000', DATE_FORMAT(NOW(),'%Y%m%d%H%i%s'), #{etc3}),
 				DATE_FORMAT(NOW(),'%Y%m%d%H%i%s'),
 				DATE_FORMAT(NOW(),'%Y%m%d%H%i%s'),
-				'12341234',
 				REPLACE(#{destno}, '-', ''),
-				'12341234',
-				#{msg}, 
-				'BPS'
+				'02-2149-7799',
+				#{msg},0
 			)
 	</insert>
 	
