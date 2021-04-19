@@ -25,6 +25,7 @@ import org.fincl.miss.server.scheduler.job.overFeePayScheuler.vo.OverFeeVO;
 import org.fincl.miss.server.scheduler.job.sms.SmsMessageVO;
 import org.fincl.miss.server.sms.SendType;
 import org.fincl.miss.server.sms.SmsSender;
+import org.fincl.miss.server.util.MainPayUtil;
 import org.fincl.miss.server.util.StringUtil;
 import org.json.JSONException;
 import org.slf4j.Logger;
@@ -35,6 +36,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import com.mainpay.sdk.utils.ParseUtils;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -112,143 +114,101 @@ public class AutoOverFeePayScheduler  {
 		restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
 		restVrerifyTemplate = new RestTemplate();
 		restVrerifyTemplate.getMessageConverters().add(new StringHttpMessageConverter());
-		
+
 		List<OverFeeVO> targetList = autoOverFeePayService.getOverFeeProcTarget();
-		
 		
 		SmsMessageVO smsVo = null;
 		int result = 0;
-		if(targetList != null){
-			//https://service.paygate.net/INTL/pgtlProcess3.jsp?mid=seoulbikekr&output=json&mb_serial_no=BIL_009&unitprice=1000&goodcurrency=WON&profile_no=3f2eb8c969e37c5fd5df5e93d1dbe5a7d5bf4afed772986b0e5ca9768ebf6bb9
+		if(targetList != null)
+		{
 			logger.debug("##### targetList in ==> " + targetList.get(0).getUsrSeq());
-			for(OverFeeVO fee : targetList) {
-				//자동결제
-				//https://service.paygate.net/INTL/pgtlProcess3.jsp?profile_no=해당고객에profile_No&mid=해당상점에MID&unitprice=결제요청금액&goodcurrency=결제요청화폐
-	
-				/**
-				 * 거래번호 생성(FORMAT : USRSEQ_BIL009_YYMMDDHI)_20160920_JJH_START
-				 */
-				DateFormat sdFormat = new SimpleDateFormat("YYMMddHH");
-				Date nowDate = new Date();
-				
-				String tmpDate = sdFormat.format(nowDate);
-				//String mId = "seoulbikekrtest";
-				String mId = "seoulbikekr";
-				String mb_serial_no = null;
-				
-				if(fee.getPayment_cls_cd().equals("BIL_008")){
-					mb_serial_no = fee.getUsrSeq() + "_BIL009_" + fee.getRentHistSeq() + "_" + tmpDate;
-				}else{
-					mb_serial_no = fee.getUsrSeq() + "_BIL009_" + tmpDate;
-				}
-				
-				fee.setMb_serial_no(mb_serial_no);
-				
-				logger.debug("##### 초과요금 거래번호 ==> " + mb_serial_no);
-				/**
-				 * 거래번호 생성(FORMAT : USRSEQ_BIL009_YYMMDDHI)_20160920_JJH_END
-				 */
-				
-				if(fee.getPaymentMethodCd().equalsIgnoreCase("BIM_002")) {
-					mId = "seoulbikeus";
-				}
-				String param ="&mid="+mId
-					+"&mb_serial_no="+mb_serial_no
-					+"&unitprice="+fee.getOverFee()
-					+"&goodoption1="+fee.getUsrSeq()
-					+"&receipttoname="+fee.getUsrSeq()
-	  				+"&goodcurrency=WON";
-				//다날
-				//https://service.paygate.net/INTL/pgtlProcess3.jsp?mid=seoulbikekr&paymethod=801&unitprice=2000&goodcurrency=WON&goodname=bikeseoul&receipttoname=최종찬&receipttoemail=siyumy@nate.com&exprebill=Y&hash_authkey=76bc773909876022a6d5ad822100cbd078e2f220149c927e3d258c9afc96a5a2
-				if(fee.getPaymentMethodCd().equalsIgnoreCase("BIM_003")) {
-					//휴대폰
-					param += "&receipttoname="+fee.getMbId()
-						  +"&receipttoemail="+fee.getMbEmailName()
-						  +"&paymethod=801"
-						  +"&goodname=BikeSeoul초과요금결제"
-						  +"&exprebill=Y"
-						  +"&hash_authkey="+fee.getBillingKey().trim();
-				} else {
-					//카드
-					param += "&profile_no="+fee.getBillingKey().trim();
-				}
-				try {
-					//https://service.paygate.net/INTL/pgtlProcess3.jsp?&mid=seoulbikekr&output=json&unitprice=2000&goodcurrency=WON&profile_no=76bc773909876022a6d5ad822100cbd078e2f220149c927e3d258c9afc96a5a2
-					logger.debug("*****프로파일 결제***");
-					String tUrl = TARGET_URL + param;
-					tUrl = tUrl.replaceAll("\\s", "");
-					logger.debug("*****"+tUrl+"***");
-					URI url = new URI(tUrl);
-					String resultStr = restTemplate.postForObject(url, null, String.class);
-					//logger.debug("****************RESULT******************");
-					//logger.debug("*****"+resultStr+"***");
-					if(resultStr != null){
-						//TODO 성공하면 다음단계
-						//성공코드에 
-						logger.debug("*****프로파일 응답:");
-						Map<String,String> resultMap = StringUtil.makeResultMsgConvertMap(resultStr);
-						if(resultMap != null){
-							smsVo = new SmsMessageVO();
-							String stusCd = resultMap.get("payresultcode").trim();
-							String desc = "초과 요금 비정기 결제 스케줄러";
-							fee.setResultCD(stusCd);
+			for(OverFeeVO fee : targetList) 
+			{
+
+				MainPayUtil MainPayutil = new MainPayUtil();
+				try 
+				{
+		        	HashMap<String, String> parameters = new HashMap<String, String>();
+		        	
+		        	
+		        	String billkey = fee.getBillingKey() ;
+		    		if( billkey != null && !"".equals(billkey)) {	// 빌링키 없음 실패		
+		    			parameters.put("billkey", billkey);	// 정기결제 인증 키
+		    		}
+		    		parameters.put("goodsId", "BIL_009");
+		    		parameters.put("goodsName", "추가과금");
+		    		parameters.put("amount", fee.getOverFee());
+		        	
+		        	
+		    		String responseJson = MainPayutil.approve(parameters,"Y");
+		    		
+		    		
+		    		
+		    		Map responseMap = ParseUtils.fromJson(responseJson, Map.class);
+					String resultCode = (String) responseMap.get("resultCode");
+					String resultMessage = (String) responseMap.get("resultMessage");
+				    
+				    
+					if(!"200".equals(resultCode)) {	// API 호출 실패
+						
+						fee.setResultCD(resultCode);
+						fee.setProcessReasonDesc( resultMessage);
+						result = autoOverFeePayService.addTicketPaymentFail(fee);
+						logger.debug("count-->>"+fee.getPaymentAttCnt());
+					}
+					else
+					{	// API 호출 성공
+						try 
+						{
+							fee.setPaymentMethodCd("BIM_001");
+							fee.setResultCD("0000");
+							fee.setPaymentStusCd("BIS_001");
+							fee.setMb_serial_no(parameters.get("mbrRefNo"));
+							fee.setPaymentConfmNo(parameters.get("mbrRefNo"));
 							fee.setTotAmt(fee.getOverFee());
-							logger.debug("*************결과 코드 :::::"+stusCd+"********************************");
-							if(stusCd.equals("0000") && !resultMap.get("tid").equals("")) {
-								fee.setPaymentStusCd("BIS_001");
-								fee.setPaymentConfmNo(resultMap.get("tid"));
-								fee.setProcessReasonDesc(desc);
-								Map<String, String> returnMap = new HashMap<String, String>();
-								returnMap = autoOverFeePayService.getPaymentInfoExist(fee);
-								
-								if(returnMap.get("PAYMENT_INFO_EXIST").equals("N"))
-								{
-									logger.debug("##### 초과요금 결제정보가 없다. #####");
-									result = autoOverFeePayService.addTicketPayment(fee);
-								}else{
-									logger.debug("##### 초과요금 결제정보가 이미 있다. #####");
-								}
-								
-								if(fee.getUsrMpnNo() != null && !fee.getUsrMpnNo().equals("")) {
-									logger.debug("getUsrMpnNo-->>"+fee.getUsrMpnNo());
-									smsVo.setDestno(fee.getUsrMpnNo());
-									smsVo.setMsg(SendType.SMS_004, fee.getOverMi(),fee.getOverFee());
-									SmsSender.sender(smsVo);
-								}
-								
-							} else {
-								//TODO 실패 메세지로 변경
-								fee.setProcessReasonDesc( resultMap.get("payresultmsg"));
-								result = autoOverFeePayService.addTicketPaymentFail(fee);
-								logger.debug("count-->>"+fee.getPaymentAttCnt());
-								if(Integer.parseInt(fee.getPaymentAttCnt()) == 1) {
-									if(fee.getUsrMpnNo() != null && !fee.getUsrMpnNo().equals("")) {
-										smsVo.setDestno(fee.getUsrMpnNo());
-										smsVo.setMsg(SendType.SMS_005, fee.getOverMi(),fee.getOverFee());
-										SmsSender.sender(smsVo);
-									}
-								}
+							
+							//fee.setOrderCertifyKey(orderCertifyKey);
+							fee.setProcessReasonDesc(resultMessage);
+							Map<String, String> returnMap = new HashMap<String, String>();
+							returnMap = autoOverFeePayService.getPaymentInfoExist(fee);
+							logger.debug("check-->> " +returnMap.get("PAYMENT_INFO_EXIST"));
+							if(returnMap.get("PAYMENT_INFO_EXIST").equals("N"))
+							{
+								logger.debug("##### payco 초과요금 결제정보가 없다. #####");
+								result = autoOverFeePayService.addTicketPayment(fee);
+							}else{
+								logger.debug("##### payco 초과요금 결제정보가 이미 있다. #####");
+							}
+							
+							
+							if(fee.getUsrMpnNo() != null && !fee.getUsrMpnNo().equals("")) 
+							{
+								logger.debug("getUsrMpnNo-->>"+fee.getUsrMpnNo());
+								smsVo = new SmsMessageVO();
+								smsVo.setDestno(fee.getUsrMpnNo());
+								smsVo.setMsg("과금되었습니다");
+								SmsSender.sender(smsVo);
+								logger.debug("tEST");
 							}
 							result = autoOverFeePayService.setOverFeePayComplete(fee);
-							logger.debug("*************자동결제 후 결제 응답코드 리턴 START********************************");
-							if(stusCd.equals("0000") && !resultMap.get("tid").equals("")) {
-								String urlStr = VERIFY_URL+resultMap.get("tid")+"&verifyNum=100";
-								URI vUrl = new URI(urlStr);
-								ResponseEntity<String> res = restVrerifyTemplate.getForEntity(vUrl, String.class);
-								HttpStatus httpStatus =  res.getStatusCode();
-								int statusCd = httpStatus.value();
-								logger.debug("*************자동결제 후 결제 응답코드 리턴"+statusCd+"********************************");
-								
-							}
+							
+						} catch (Exception e) {
+							// TODO: handle exception
+							// TB_SVC_PAYMENT_FAIL_HIST 실패 추가
+							//ticketVo.setErrMsg(e.getMessage());
+							//ticketService.insertPaymentFail(ticketVo);
+							fee.setProcessReasonDesc( e.getMessage());
+							result = autoOverFeePayService.addTicketPaymentFail(fee);
+							logger.debug("count-->>"+fee.getPaymentAttCnt());
 						}
 					}
-					
-				} catch (URISyntaxException e) {
-					// TODO: handle exception
-					e.printStackTrace();
-				}
+		            
+		        } catch (Exception e) {
+		            e.printStackTrace();
+		            System.out.println(e.toString());
+		        }
 			}
-		}	
+		}
 	}
 	public static void main(String[] args) {
 		RestTemplate rt = new RestTemplate();

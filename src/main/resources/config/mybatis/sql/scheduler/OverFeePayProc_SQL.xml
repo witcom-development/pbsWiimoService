@@ -34,33 +34,31 @@
     
     <select id="getOverFeeProcTarget" resultType="org.fincl.miss.server.scheduler.job.overFeePayScheuler.vo.OverFeeVO">
     <![CDATA[
-		SELECT  P.BILLING_KEY           AS billingKey,
-				P.PAYMENT_METHOD_CD     AS paymentMethodCd,
-				RF.RENT_HIST_SEQ        AS rentHistSeq,
-				RH.RENT_DTTM            AS rentDttm,
-				PAYMENT_ATT_CNT         AS paymentAttCnt,
-				OVER_FEE                AS overFee,
-				IFNULL((SELECT MB_ID
-						FROM TB_SVC_MB 
-						WHERE USR_SEQ = U.USR_SEQ),'GUEST')	AS mbId,
-				U.USR_SEQ               AS usrSeq,
-				RF.OVER_MI              AS overMi,
-				IFNULL((SELECT  dg_decrypt('TB_SVC_MB', 'MB_EMAIL_NAME', MB_EMAIL_NAME)
-						FROM TB_SVC_MB 
-						WHERE USR_SEQ = U.USR_SEQ ) ,'GUEST@seoulbike.co.kr')	AS mbEmailName,
-				cast(dg_decrypt('TB_SVC_USR', 'USR_MPN_NO', U.USR_MPN_NO) as CHAR)	AS usrMpnNo,
-				V.PAYMENT_CLS_CD
-		FROM  TB_SVC_RENT_OVER_FEE RF, 
-			  TB_SVC_RENT_HIST RH,
-			  TB_SVC_USR U LEFT OUTER JOIN TB_SVC_PAYMENT_METHOD P ON U.USR_SEQ = P.USR_SEQ,
-			  TB_SVC_VOUCHER V
+		SELECT 
+			P.BILLING_KEY           AS billingKey,
+			P.BILLING_CERTIFY_KEY   AS billingCertifyKey,
+			P.PAYMENT_METHOD_CD     AS paymentMethodCd,
+			RF.RENT_HIST_SEQ        AS rentHistSeq,
+			RH.RENT_DTTM            AS rentDttm,
+			RF.PAYMENT_ATT_CNT         AS paymentAttCnt,
+			RF.OVER_FEE                AS overFee,
+			IFNULL(MB.MB_ID,'GUEST') AS mbId,
+			U.USR_SEQ               AS usrSeq,
+			RF.OVER_MI              AS overMi,
+			IFNULL( dg_decrypt('TB_SVC_MB', 'MB_EMAIL_NAME', MB.MB_EMAIL_NAME),'GUEST') AS mbEmailName,
+			CAST(dg_decrypt('TB_SVC_USR', 'USR_MPN_NO', U.USR_MPN_NO) AS CHAR)   AS usrMpnNo,
+			V.PAYMENT_CLS_CD
+		FROM  (SELECT * FROM TB_SVC_RENT_OVER_FEE WHERE OVER_FEE_PAYMENT_YN = 'N' AND PAYMENT_ATT_CNT < ( SELECT ADD_VAL1 FROM TB_SYS_COM_CD  WHERE COM_CD='MSI_005')  ORDER BY RENT_HIST_SEQ DESC LIMIT 100) RF
+			INNER JOIN TB_SVC_RENT_HIST RH ON RH.RENT_HIST_SEQ = RF.RENT_HIST_SEQ
+			INNER JOIN TB_SVC_USR U ON U.USR_SEQ = RH.USR_SEQ
+			INNER JOIN TB_SVC_VOUCHER V ON V.VOUCHER_SEQ = RH.VOUCHER_SEQ
+			INNER JOIN TB_SVC_PAYMENT PAY ON V.PAYMENT_SEQ = PAY.PAYMENT_SEQ
+			LEFT JOIN TB_SVC_PAYMENT_METHOD P ON P.USR_SEQ = U.USR_SEQ
+			LEFT JOIN TB_SVC_MB MB ON MB.USR_SEQ = U.USR_SEQ
 		WHERE 1=1
-		AND RH.USR_SEQ = U.USR_SEQ 
-		AND RF.RENT_HIST_SEQ = RH.RENT_HIST_SEQ   
-		AND OVER_FEE_PAYMENT_YN = 'N'
-		AND PAYMENT_ATT_CNT < ( SELECT ADD_VAL1 FROM spb.TB_SYS_COM_CD  WHERE COM_CD='MSI_005')
-		AND RH.VOUCHER_SEQ = V.VOUCHER_SEQ
-		AND P.BILLING_KEY IS NOT NULL 
+			AND P.BILLING_KEY <> ''
+		ORDER BY rentDttm asc
+		LIMIT 50
     ]]>  
     </select>
     <!-- 단체권 초과요금 결제 중복방지_20160930_JJH_END -->
@@ -133,7 +131,7 @@
 			   	WHEN COUNT(PAYMENT_CONFM_NO) > 0
 			   	THEN 'Y'
 			   	ELSE 'N'
-			   END AS PAYMENT_INFO_EXIST
+			   END AS PAYMENT_INFO_EXIST, COUNT(*)
 		FROM TB_SVC_PAYMENT
 		WHERE 1=1
 		AND USR_SEQ = #{usrSeq}
