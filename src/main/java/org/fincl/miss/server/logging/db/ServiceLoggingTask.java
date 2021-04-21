@@ -48,6 +48,7 @@ public class ServiceLoggingTask implements Runnable {
         try {
      //      serviceLogService.addServiceLog(serviceLog);
             
+        	/*
             if (serviceLogging.getExtChannel().getInOutTypeEnum() == InOutModeType.SERVER && serviceLogging.getExtChannel().getSyncTypeEnum() != SyncType.PUBSUB) {
                 StringBuilder sb = new StringBuilder();
                 sb.append("{");
@@ -61,6 +62,7 @@ public class ServiceLoggingTask implements Runnable {
                 sb.append("}");
                 channelManager.getInBoundTrafficMonitoringChannel().broadcastTrafficMessage(sb.toString().getBytes());
             }
+            */
             
         }
         catch (Exception ex) {
