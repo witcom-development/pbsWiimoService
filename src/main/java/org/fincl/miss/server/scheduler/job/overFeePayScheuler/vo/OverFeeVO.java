@@ -50,6 +50,7 @@ public class OverFeeVO {
     private String overMi;
     private String mb_serial_no;
     private String payment_cls_cd;
+    private String order_certify_key;
     
     
 	public String getPayment_cls_cd() {
@@ -208,6 +209,14 @@ public class OverFeeVO {
 	public void setMbEmailName(String mbEmailName) {
 		this.mbEmailName = mbEmailName;
 	}
+	public String getOrder_certify_key() {
+		return order_certify_key;
+	}
+	public void setOrder_certify_key(String order_certify_key) {
+		this.order_certify_key = order_certify_key;
+	}
+	
+	
     
     
 }
