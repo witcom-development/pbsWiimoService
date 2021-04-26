@@ -31,4 +31,10 @@
            SET PAYMENT_STUS_CD  ='BIS_004' 
          WHERE PAYMENT_SEQ = #{paymentSeq}  
     </update>
+    
+    <delete id="setVoucherUseComplete" parameterType="String">
+        DELETE FROM TB_SVC_VOUCHER WHERE VOUCHER_SEQ = #{voucherSeq}                                                                                           
+    </delete>
+    
+    
 </mapper>

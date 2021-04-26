@@ -73,5 +73,7 @@ public interface GuestRemoveInfoMapper {
 	void addRefundHistFail(String paymentSeq);
 	
 	void setCancelInfo(String cancelSeq);
+	
+	void setVoucherUseComplete(String voucherSeq);
 
 }

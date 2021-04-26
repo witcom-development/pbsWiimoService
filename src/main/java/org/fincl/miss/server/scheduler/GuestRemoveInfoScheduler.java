@@ -104,6 +104,7 @@ public class GuestRemoveInfoScheduler {
 						{
 							
 							guestRemoveInfoMapper.addRefundHist(refund.get("PAYMENT_SEQ").toString());
+							guestRemoveInfoMapper.setVoucherUseComplete(refund.get("VOUCHER_SEQ").toString());
 							guestRemoveInfoMapper.setCancelInfo(refund.get("CANCLE_SEQ").toString());
 							logger.debug("******************************[미대여 건 자동 환불 SUCCESS] CANCLE_SEQ = " + refund.get("CANCLE_SEQ").toString());
 							
