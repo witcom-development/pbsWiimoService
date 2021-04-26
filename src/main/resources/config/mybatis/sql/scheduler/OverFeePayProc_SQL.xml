@@ -75,6 +75,7 @@
                 ,MILEAGE_PAYMENT_AMT
                 ,RENT_OVER_FEE_SUM
                 ,MB_SERIAL_NO
+                ,ORDER_CERTIFY_KEY
         ) VALUES (
                 now()
                ,#{usrSeq}
@@ -86,6 +87,7 @@
                ,0
                ,0
                ,#{mb_serial_no}
+               ,#{order_certify_key}
         )
     </insert>
     
