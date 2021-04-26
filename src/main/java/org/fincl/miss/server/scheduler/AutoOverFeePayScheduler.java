@@ -164,8 +164,13 @@ public class AutoOverFeePayScheduler  {
 							fee.setResultCD("0000");
 							fee.setPaymentStusCd("BIS_001");
 							fee.setMb_serial_no(parameters.get("mbrRefNo"));
-							fee.setPaymentConfmNo(parameters.get("mbrRefNo"));
+							
+							
+							Map dataMap = (Map)responseMap.get("data");
+							
+							fee.setPaymentConfmNo((String) dataMap.get("refNo"));
 							fee.setTotAmt(fee.getOverFee());
+							fee.setOrder_certify_key((String)responseMap.get("applNo"));
 							
 							//fee.setOrderCertifyKey(orderCertifyKey);
 							fee.setProcessReasonDesc(resultMessage);
@@ -174,10 +179,10 @@ public class AutoOverFeePayScheduler  {
 							logger.debug("check-->> " +returnMap.get("PAYMENT_INFO_EXIST"));
 							if(returnMap.get("PAYMENT_INFO_EXIST").equals("N"))
 							{
-								logger.debug("##### payco 초과요금 결제정보가 없다. #####");
+								logger.debug("##### 초과요금 결제정보가 없다. #####");
 								result = autoOverFeePayService.addTicketPayment(fee);
 							}else{
-								logger.debug("##### payco 초과요금 결제정보가 이미 있다. #####");
+								logger.debug("##### 초과요금 결제정보가 이미 있다. #####");
 							}
 							
 							
@@ -188,7 +193,6 @@ public class AutoOverFeePayScheduler  {
 								smsVo.setDestno(fee.getUsrMpnNo());
 								smsVo.setMsg("과금되었습니다");
 								SmsSender.sender(smsVo);
-								logger.debug("tEST");
 							}
 							result = autoOverFeePayService.setOverFeePayComplete(fee);
 							
