@@ -85,7 +85,7 @@ public class AutoOverFeePayScheduler  {
 	     *           PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException:
 	     *               unable to find valid certification path to requested target
 	     */
-       logger.debug("******************************[초과요금 자동 결제 배치 start]인증서 에러 방지 ******************************");
+       logger.debug("******************************[초과요금 자동 결제 배치 START] ******************************");
 	   TrustManager[] trustAllCerts = new TrustManager[] {
 	       new X509TrustManager() {
 	          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
@@ -121,9 +121,10 @@ public class AutoOverFeePayScheduler  {
 		int result = 0;
 		if(targetList != null)
 		{
-			logger.debug("##### targetList in ==> " + targetList.get(0).getUsrSeq());
+			
 			for(OverFeeVO fee : targetList) 
 			{
+				logger.debug("##### target in USR SEQ ==> " + fee.getUsrSeq());
 
 				MainPayUtil MainPayutil = new MainPayUtil();
 				try 
@@ -155,6 +156,7 @@ public class AutoOverFeePayScheduler  {
 						fee.setProcessReasonDesc( resultMessage);
 						result = autoOverFeePayService.addTicketPaymentFail(fee);
 						logger.debug("count-->>"+fee.getPaymentAttCnt());
+						logger.debug("******************************[초과요금 자동 결제 FAIL] USR_SEQ = " + fee.getUsrSeq());
 					}
 					else
 					{	// API 호출 성공
@@ -195,6 +197,7 @@ public class AutoOverFeePayScheduler  {
 								SmsSender.sender(smsVo);
 							}
 							result = autoOverFeePayService.setOverFeePayComplete(fee);
+							logger.debug("******************************[초과요금 자동 결제 SUCCESS] USR_SEQ = " + fee.getUsrSeq());
 							
 						} catch (Exception e) {
 							// TODO: handle exception
@@ -204,6 +207,7 @@ public class AutoOverFeePayScheduler  {
 							fee.setProcessReasonDesc( e.getMessage());
 							result = autoOverFeePayService.addTicketPaymentFail(fee);
 							logger.debug("count-->>"+fee.getPaymentAttCnt());
+							logger.debug("******************************[초과요금 자동 결제 FAIL] USR_SEQ = " + fee.getUsrSeq());
 						}
 					}
 		            
@@ -213,6 +217,7 @@ public class AutoOverFeePayScheduler  {
 		        }
 			}
 		}
+		logger.debug("******************************[초과요금 자동 결제 배치 END] ******************************");
 	}
 	public static void main(String[] args) {
 		RestTemplate rt = new RestTemplate();
