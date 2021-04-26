@@ -29,19 +29,15 @@ public class MainPayUtil {
 	//private static final String FILE_PATH   = "D:/logs";
 	private final String FILE_PATH   = "/MainPayLogs";
 	
-	private String READY_URI    			= "";
-	private String INFO_URI					= "";
-	private String STATUS_URI				= "";
 	private String APPROVE_URI				= "";
-	private String SUBSCRIPTION_URI			= "";
-	private String ORDER_URI      			= "";
-	private String INACTIVE_URI				= "";
 	private String CANCEL_URI      			= "";
 
 	//생성자
 	public MainPayUtil(){
 		APPROVE_URI			= "https://dev-relay.mainpay.co.kr/v1/api/payments/payment/card-auto/trans";			//TEST
 		//APPROVE_URI			= "https://relay.mainpay.co.kr/v1/api/payments/payment/card-auto/trans";				//REAL
+		CANCEL_URI			= "https://dev-relay.mainpay.co.kr/v1/api/payments/payment/card-auto/cancel";			//TEST
+		//CANCEL_URI			= "https://relay.mainpay.co.kr/v1/api/payments/payment/card-auto/cancel";				//REAL
 		
 	}
 	
@@ -67,6 +63,7 @@ public class MainPayUtil {
 		String TODAY = format.format(date);
 		
 		parameters.put("mbrNo", mbrNo);							// SPC Networks에서 부여한 가맹점번호 (상점 ID)
+		
 		parameters.put("mbrRefNo", MakeID.orderNo("WG_"+TODAY, 20));	// 가맹점에서 나름대로 정한 중복되지 않는 주문번호
 		
 		try 
@@ -75,6 +72,43 @@ public class MainPayUtil {
 	    	
 	    	makeServiceCheckApiLogFile("[" +dateformat.format(new java.util.Date()) + "][결제요청] " +"[callUrl :" + APPROVE_URI +" ] " + mapper.writeValueAsString(parameters), logYn);
     		makeServiceCheckApiLogFile("[" +dateformat.format(new java.util.Date()) + "][결제요청 결과] " + returnStr, logYn);
+	    } 
+		catch (Exception e)
+		{
+	    	returnStr = "{\"code\":\"9999\",\"message\":\""+e.getMessage()+"\"}";
+	    	System.out.println(e.toString());
+	    }
+		
+		return returnStr;
+	}
+	
+	/**
+	 * 자동결제 취소요청
+	 * @param map
+	 * @param logYn : Y/N
+	 * @return
+	 */
+	public String cancel(HashMap<String, String> parameters, String logYn)
+	{
+		String returnStr = "";
+		
+		String mbrNo = "100011";											// 테스트 가맹점 번호
+		String apiKey = "U1FVQVJFLTEwMDAxMTIwMTgwNDA2MDkyNTMyMTA1MjM0";		// 테스트 apiKey
+		
+		java.text.SimpleDateFormat format = new java.text.SimpleDateFormat ( "yyyyMMddHHmmss");
+		Date date = new Date();
+		String TODAY = format.format(date);
+		
+		parameters.put("mbrNo", mbrNo);							// SPC Networks에서 부여한 가맹점번호 (상점 ID)
+		
+		parameters.put("mbrRefNo", MakeID.orderNo("WG_"+TODAY, 20));	// 가맹점에서 나름대로 정한 중복되지 않는 주문번호
+		
+		try 
+		{
+	    	returnStr = getSSLConnection( CANCEL_URI, parameters, apiKey);
+	    	
+	    	makeServiceCheckApiLogFile("[" +dateformat.format(new java.util.Date()) + "][결제 취소요청] " +"[callUrl :" + CANCEL_URI +" ] " + mapper.writeValueAsString(parameters), logYn);
+    		makeServiceCheckApiLogFile("[" +dateformat.format(new java.util.Date()) + "][결제 취소요청 결과] " + returnStr, logYn);
 	    } 
 		catch (Exception e)
 		{

@@ -12,6 +12,7 @@
  */ 
 package org.fincl.miss.server.scheduler.job.guest;
 
+import java.util.HashMap;
 import java.util.List;
 
 import egovframework.rte.psl.dataaccess.mapper.Mapper;
@@ -39,7 +40,7 @@ public interface GuestRemoveInfoMapper {
 	 * -------------------------------------------------------------
 	 *    2015. 8. 27.   |   ymshin   |  최초작성
 	 */ 
-	List<String> chkGuestVoucherStataus();
+	List<HashMap<String, Object>> chkGuestVoucherStataus();
 
 	/**
 	 * @param seq 
@@ -66,5 +67,11 @@ public interface GuestRemoveInfoMapper {
 	 *    2015. 8. 27.   |   ymshin   |  최초작성
 	 */ 
 	void setGuestRemoveInfo(String seq);
+	
+	void addRefundHist(String paymentSeq);
+	
+	void addRefundHistFail(String paymentSeq);
+	
+	void setCancelInfo(String cancelSeq);
 
 }
