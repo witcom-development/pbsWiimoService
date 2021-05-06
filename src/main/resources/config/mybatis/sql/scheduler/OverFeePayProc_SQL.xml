@@ -47,7 +47,7 @@
 			RF.OVER_MI              AS overMi,
 			IFNULL( dg_decrypt('TB_SVC_MB', 'MB_EMAIL_NAME', MB.MB_EMAIL_NAME),'GUEST') AS mbEmailName,
 			CAST(dg_decrypt('TB_SVC_USR', 'USR_MPN_NO', U.USR_MPN_NO) AS CHAR)   AS usrMpnNo,
-			V.PAYMENT_CLS_CD
+			V.PAYMENT_CLS_CD, P.CARD_NO AS PAYMENT_CARD_NO,P.MPN_NO AS CARD_COMPANY
 		FROM  (SELECT * FROM TB_SVC_RENT_OVER_FEE WHERE OVER_FEE_PAYMENT_YN = 'N' AND PAYMENT_ATT_CNT < ( SELECT ADD_VAL1 FROM TB_SYS_COM_CD  WHERE COM_CD='MSI_005')  ORDER BY RENT_HIST_SEQ DESC LIMIT 100) RF
 			INNER JOIN TB_SVC_RENT_HIST RH ON RH.RENT_HIST_SEQ = RF.RENT_HIST_SEQ
 			INNER JOIN TB_SVC_USR U ON U.USR_SEQ = RH.USR_SEQ
@@ -76,6 +76,8 @@
                 ,RENT_OVER_FEE_SUM
                 ,MB_SERIAL_NO
                 ,ORDER_CERTIFY_KEY
+                ,PAYMENT_CARD_NO
+                ,CARD_COMPANY
         ) VALUES (
                 now()
                ,#{usrSeq}
@@ -88,6 +90,8 @@
                ,0
                ,#{mb_serial_no}
                ,#{order_certify_key}
+               ,#{payment_card_no}
+               ,#{card_company}
         )
     </insert>
     

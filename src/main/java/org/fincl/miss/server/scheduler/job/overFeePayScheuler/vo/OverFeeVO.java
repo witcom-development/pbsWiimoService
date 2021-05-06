@@ -51,7 +51,8 @@ public class OverFeeVO {
     private String mb_serial_no;
     private String payment_cls_cd;
     private String order_certify_key;
-    
+    private String payment_card_no;
+    private String card_company;
     
 	public String getPayment_cls_cd() {
 		return payment_cls_cd;
@@ -215,6 +216,20 @@ public class OverFeeVO {
 	public void setOrder_certify_key(String order_certify_key) {
 		this.order_certify_key = order_certify_key;
 	}
+	public String getPayment_card_no() {
+		return payment_card_no;
+	}
+	public void setPayment_card_no(String payment_card_no) {
+		this.payment_card_no = payment_card_no;
+	}
+	public String getCard_company() {
+		return card_company;
+	}
+	public void setCard_company(String card_company) {
+		this.card_company = card_company;
+	}
+	
+	
 	
 	
     
