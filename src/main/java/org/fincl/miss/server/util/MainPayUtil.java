@@ -34,10 +34,10 @@ public class MainPayUtil {
 
 	//생성자
 	public MainPayUtil(){
-		APPROVE_URI			= "https://dev-relay.mainpay.co.kr/v1/api/payments/payment/card-auto/trans";			//TEST
-		//APPROVE_URI			= "https://relay.mainpay.co.kr/v1/api/payments/payment/card-auto/trans";				//REAL
-		CANCEL_URI			= "https://dev-relay.mainpay.co.kr/v1/api/payments/payment/card-auto/cancel";			//TEST
-		//CANCEL_URI			= "https://relay.mainpay.co.kr/v1/api/payments/payment/card-auto/cancel";				//REAL
+		//APPROVE_URI			= "https://dev-relay.mainpay.co.kr/v1/api/payments/payment/card-auto/trans";			//TEST
+		APPROVE_URI			= "https://relay.mainpay.co.kr/v1/api/payments/payment/card-auto/trans";				//REAL
+		//CANCEL_URI			= "https://dev-relay.mainpay.co.kr/v1/api/payments/payment/card-auto/cancel";			//TEST
+		CANCEL_URI			= "https://relay.mainpay.co.kr/v1/api/payments/payment/card-auto/cancel";				//REAL
 		
 	}
 	
@@ -55,8 +55,8 @@ public class MainPayUtil {
 	{
 		String returnStr = "";
 		
-		String mbrNo = "100011";											// 테스트 가맹점 번호
-		String apiKey = "U1FVQVJFLTEwMDAxMTIwMTgwNDA2MDkyNTMyMTA1MjM0";		// 테스트 apiKey
+		String mbrNo = "107022";											// 테스트 가맹점 번호
+		String apiKey = "U1FVQVJFLTEwNzAyMjIwMjEwNTI0MTQzNjM3MTU1NTk1";		// 테스트 apiKey
 		
 		java.text.SimpleDateFormat format = new java.text.SimpleDateFormat ( "yyyyMMddHHmmss");
 		Date date = new Date();
@@ -92,8 +92,8 @@ public class MainPayUtil {
 	{
 		String returnStr = "";
 		
-		String mbrNo = "100011";											// 테스트 가맹점 번호
-		String apiKey = "U1FVQVJFLTEwMDAxMTIwMTgwNDA2MDkyNTMyMTA1MjM0";		// 테스트 apiKey
+		String mbrNo = "107022";											// 테스트 가맹점 번호
+		String apiKey = "U1FVQVJFLTEwNzAyMjIwMjEwNTI0MTQzNjM3MTU1NTk1";		// 테스트 apiKey
 		
 		java.text.SimpleDateFormat format = new java.text.SimpleDateFormat ( "yyyyMMddHHmmss");
 		Date date = new Date();
