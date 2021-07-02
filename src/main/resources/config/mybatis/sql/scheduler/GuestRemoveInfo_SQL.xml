@@ -16,9 +16,9 @@
     
     <select id="chkRentInvalidReturnOver" resultType="java.util.HashMap">
     <![CDATA[  
-		SELECT *,
+		SELECT USR_SEQ,RENT_BIKE_ID,END_DTTM,
 			TRUNCATE(((TIMESTAMPDIFF(SECOND, RENT_DTTM,(IFNULL(END_DTTM, NOW()))))/60),0) USE_MI,
-			TIMESTAMPDIFF(second, (IFNULL(END_DTTM, NOW())), NOW()) REQ_SEC
+			TRUNCATE(((TIMESTAMPDIFF(SECOND, (IFNULL(END_DTTM, NOW())), NOW()))),0) REQ_SEC
 			FROM TB_SVC_RENT
 			WHERE RENT_YN = 'Y' AND END_DTTM IS NOT NULL
     ]]>      
@@ -50,4 +50,415 @@
     </delete>
     
     
+    
+    
+    
+    <!--  WIIMO BIZ ADD -->
+    <insert id="insertParkingInfo"		parameterType="org.fincl.miss.server.scheduler.job.guest.vo.RentHistVo">
+	
+		INSERT IGNORE INTO TB_OPR_BIKE_PARKING
+		(
+			RACK_ID, BIKE_ID, CASCADE_YN, CASCADE_BIKE_ID, REG_DTTM 
+		)
+		VALUES
+		(
+			#{RETURN_RACK_ID}, #{RENT_BIKE_ID}, #{CASCADE_YN}, 
+			<choose>
+				<when test="CASCADE_YN != null and CASCADE_YN eq 'Y'.toString()">
+					(SELECT BIKE_ID FROM TB_OPR_BIKE WHERE TERMINAL_ID = #{CASCADE_BIKE_ID})
+				</when>
+				<otherwise>
+					null
+				</otherwise>
+			</choose>
+			, SYSDATE()
+		)
+	
+	</insert>
+
+
+
+
+	<update id="updateBikeLocation"		parameterType="org.fincl.miss.server.scheduler.job.guest.vo.RentHistVo">
+		UPDATE 
+			TB_OPR_BIKE_LOCATE_HIST
+		SET 
+			LOCATE_END_DTTM = date_add(now() , INTERVAL -1 SECOND)
+		WHERE 
+			LOCATE_END_DTTM = STR_TO_DATE('9999-12-31 23:59:59','%Y-%m-%d %H:%i:%s')
+			AND BIKE_ID = #{RENT_BIKE_ID}
+	</update>
+
+
+
+	<insert id="insertBikeLocation"		parameterType="org.fincl.miss.server.scheduler.job.guest.vo.RentHistVo">
+	
+		INSERT INTO TB_OPR_BIKE_LOCATE_HIST
+		(
+			BIKE_ID, LOCATE_CLS_CD, LOCATE_ID, LOCATE_STR_DTTM, LOCATE_END_DTTM 
+		)
+		VALUES
+		(
+			#{RENT_BIKE_ID}, 'R', #{RETURN_RACK_ID}, SYSDATE(), STR_TO_DATE('9999-12-31 23:59:59','%Y-%m-%d %H:%i:%s')
+		)
+	
+	</insert>
+
+
+
+	<update id="updateBike"		parameterType="org.fincl.miss.server.scheduler.job.guest.vo.RentHistVo">	
+	
+		UPDATE	TB_OPR_BIKE
+		SET 
+			BIKE_STUS_CD =  'BKS_003',
+			TOT_MOVE_DIST = TOT_MOVE_DIST + CAST(#{USE_DIST} AS DECIMAL(10,2)),
+			CENTER_ID = null
+		WHERE 
+			BIKE_ID = #{RENT_BIKE_ID}
+		
+	</update>
+
+
+	<update id="updateBike_012"		parameterType="org.fincl.miss.server.scheduler.job.guest.vo.RentHistVo">	
+	
+		UPDATE	TB_OPR_BIKE
+		SET 
+			BIKE_STUS_CD =  'BKS_012',
+			TOT_MOVE_DIST = TOT_MOVE_DIST + CAST(#{USE_DIST} AS DECIMAL(10,2)),
+			CENTER_ID = null
+		WHERE 
+			BIKE_ID = #{RENT_BIKE_ID}
+		
+	</update>
+
+
+	<update id="updateBikeGPS"		parameterType="org.fincl.miss.server.scheduler.job.guest.vo.RentHistVo">	
+	
+		UPDATE	TB_OPR_BIKE
+		SET 
+			GPS_X =  #{GPS_X},
+			GPS_Y = #{GPS_Y}
+		WHERE 
+			BIKE_ID = #{RENT_BIKE_ID}
+		
+	</update>
+
+
+	<select id="getRentSeq"		parameterType="org.fincl.miss.server.scheduler.job.guest.vo.RentHistVo" resultType="String">
+	
+		SELECT RENT_SEQ
+		FROM TB_SVC_RENT
+		WHERE RENT_BIKE_ID = #{RENT_BIKE_ID} 
+		AND RENT_YN = 'Y'
+		ORDER BY RENT_DTTM DESC
+		limit 1
+	</select>
+
+
+
+
+	<insert id="insertRentHist"		parameterType="org.fincl.miss.server.scheduler.job.guest.vo.RentHistVo">
+	
+		INSERT INTO TB_SVC_RENT_HIST
+		(
+			RENT_DTTM, RENT_YMD, USR_SEQ, VOUCHER_SEQ, RENT_STATION_ID, RENT_RACK_ID, RENT_BIKE_ID, RENT_CLS_CD,
+			RETURN_STATION_ID, RETURN_RACK_ID, RETURN_DTTM, RETURN_YMD, USE_MI, OVER_FEE_YN, TERMINAL_CARD_REG_YN, TRANSFER_YN, USE_DIST,
+			CONSUME_CAL, REDUCE_CO2, RENT_MTH_CD
+		)
+		VALUES
+		(
+			#{RENT_DTTM}, DATE_FORMAT(#{RENT_DTTM}, '%Y-%m-%d'), #{USR_SEQ}, #{VOUCHER_SEQ}, #{RENT_STATION_ID}, #{RENT_RACK_ID}, #{RENT_BIKE_ID}, #{RENT_CLS_CD},
+			#{RETURN_STATION_ID}, #{RETURN_RACK_ID}, now(), DATE_FORMAT(now(), '%Y-%m-%d'), #{USE_MI}, #{OVER_FEE_YN}, IFNULL(#{TERMINAL_CARD_REG_YN},'N'), #{TRANSFER_YN}, #{USE_DIST},
+			#{CONSUME_CAL}, #{REDUCE_CO2}, IFNULL(#{RENT_MTH_CD},'CHN_001')
+		)
+		<selectKey resultType="string" keyProperty="RENT_HIST_SEQ" order="AFTER">
+        	SELECT LAST_INSERT_ID() 
+   		</selectKey>        
+   		
+	</insert>
+
+
+
+	<delete id="deleteRentGPSDATA"		parameterType="org.fincl.miss.server.scheduler.job.guest.vo.RentHistVo">
+		DELETE FROM TB_OPR_GPS_DATA_DIST
+		WHERE
+			RENT_SEQ = #{RENT_SEQ}
+	</delete>
+
+
+
+
+	<delete id="deleteRentInfo_rserved"		parameterType="org.fincl.miss.server.scheduler.job.guest.vo.RentHistVo">
+	
+		DELETE FROM TB_SVC_RENT
+		WHERE RENT_BIKE_ID = #{RENT_BIKE_ID} AND RENT_YN = 'N'
+
+	
+	</delete>
+
+
+
+	<insert id="insertRentOverFee"		parameterType="org.fincl.miss.server.scheduler.job.guest.vo.RentHistVo">
+	
+		INSERT INTO TB_SVC_RENT_OVER_FEE
+		(
+			RENT_HIST_SEQ, RENT_DTTM, OVER_MI, OVER_FEE, OVER_FEE_PAYMENT_YN, OVER_FEE_PROCESS_CLS_CD,PAYMENT_ATT_CNT 
+		)
+		VALUES
+		(
+			#{RENT_HIST_SEQ}, #{RENT_DTTM}, #{OVER_MI}, IF(CAST(#{OVER_FEE} AS SIGNED) > '30000','30000',#{OVER_FEE}), 'N', 'OPD_002','4'
+		)
+	</insert>
+
+
+
+
+
+	<update id="setOverFeePayReset" parameterType="org.fincl.miss.server.scheduler.job.overFeePayScheuler.vo.OverFeeVO"> 
+        UPDATE TB_SVC_RENT_OVER_FEE
+         SET PAYMENT_ATT_CNT = 0
+         WHERE RENT_HIST_SEQ = #{rentHistSeq}
+    </update>
+
+
+
+
+
+	<insert id="addTicketPayment" parameterType="org.fincl.miss.server.scheduler.job.overFeePayScheuler.vo.OverFeeVO" useGeneratedKeys="true" keyProperty="paymentSeq">
+        INSERT INTO TB_SVC_PAYMENT (
+                 PAYMENT_DTTM
+                ,USR_SEQ
+                ,PAYMENT_CLS_CD
+                ,PAYMENT_METHOD_CD
+                ,PAYMENT_STUS_CD
+                ,PAYMENT_CONFM_NO
+                ,TOT_AMT
+                ,MILEAGE_PAYMENT_AMT
+                ,RENT_OVER_FEE_SUM
+                ,MB_SERIAL_NO
+                ,ORDER_CERTIFY_KEY
+                ,PAYMENT_CARD_NO
+                ,CARD_COMPANY
+                ,RENT_HIST_SEQ
+        ) VALUES (
+                now()
+               ,#{usrSeq}
+               ,'BIL_009'
+               ,#{paymentMethodCd}
+               ,'BIS_001'
+               ,#{paymentConfmNo}
+               ,#{totAmt}
+               ,0
+               ,0
+               ,#{mb_serial_no}
+               ,#{order_certify_key}
+               ,#{payment_card_no}
+               ,#{card_company}
+               ,#{rentHistSeq}
+        )
+    </insert>
+
+
+	<update id="setOverFeePayComplete" parameterType="org.fincl.miss.server.scheduler.job.overFeePayScheuler.vo.OverFeeVO"> 
+        UPDATE TB_SVC_RENT_OVER_FEE
+           SET PAYMENT_SEQ = #{paymentSeq}
+             <if test='resultCD == "0000"' >
+             , OVER_FEE_PROCESS_CLS_CD = 'OPD_004'
+             , OVER_FEE_PAYMENT_YN = 'Y'
+             , PAYMENT_DTTM = (SELECT PAYMENT_DTTM FROM TB_SVC_PAYMENT WHERE PAYMENT_SEQ = #{paymentSeq})
+             </if>
+             , PAYMENT_ATT_CNT = (CONVERT(#{paymentAttCnt}, UNSIGNED)+1)
+             , PROCESS_REASON_DESC = #{processReasonDesc}
+         WHERE RENT_HIST_SEQ = #{rentHistSeq}
+    </update>
+    
+    
+    <select id="getOverFeeRETURN" parameterType="string" resultType="org.fincl.miss.server.scheduler.job.overFeePayScheuler.vo.OverFeeVO">
+    <![CDATA[
+		SELECT 
+			P.BILLING_KEY           AS billingKey,
+			P.BILLING_CERTIFY_KEY   AS billingCertifyKey,
+			P.PAYMENT_METHOD_CD     AS paymentMethodCd,
+			RF.RENT_HIST_SEQ        AS rentHistSeq,
+			RH.RENT_DTTM            AS rentDttm,
+			RF.PAYMENT_ATT_CNT         AS paymentAttCnt,
+			RF.OVER_FEE                AS overFee,
+			IFNULL(MB.MB_ID,'GUEST') AS mbId,
+			U.USR_SEQ               AS usrSeq,
+			RF.OVER_MI              AS overMi,
+			IFNULL( dg_decrypt('TB_SVC_MB', 'MB_EMAIL_NAME', MB.MB_EMAIL_NAME),'GUEST') AS mbEmailName,
+			CAST(dg_decrypt('TB_SVC_USR', 'USR_MPN_NO', U.USR_MPN_NO) AS CHAR)   AS usrMpnNo,
+			V.PAYMENT_CLS_CD, P.CARD_NO AS PAYMENT_CARD_NO,P.MPN_NO AS CARD_COMPANY
+		FROM  (SELECT * FROM TB_SVC_RENT_OVER_FEE WHERE OVER_FEE_PAYMENT_YN = 'N' AND PAYMENT_ATT_CNT < ( SELECT ADD_VAL1*2 FROM TB_SYS_COM_CD  WHERE COM_CD='MSI_005')  ORDER BY RENT_HIST_SEQ DESC LIMIT 100) RF
+			INNER JOIN TB_SVC_RENT_HIST RH ON RH.RENT_HIST_SEQ = RF.RENT_HIST_SEQ
+			INNER JOIN TB_SVC_USR U ON U.USR_SEQ = RH.USR_SEQ
+			INNER JOIN TB_SVC_VOUCHER V ON V.VOUCHER_SEQ = RH.VOUCHER_SEQ
+			INNER JOIN TB_SVC_PAYMENT PAY ON V.PAYMENT_SEQ = PAY.PAYMENT_SEQ
+			LEFT JOIN TB_SVC_PAYMENT_METHOD P ON P.USR_SEQ = U.USR_SEQ
+			LEFT JOIN TB_SVC_MB MB ON MB.USR_SEQ = U.USR_SEQ
+		WHERE 1=1
+			AND P.BILLING_KEY <> ''
+			AND U.USR_SEQ = #{usr_seq}
+		ORDER BY rentDttm desc
+		LIMIT 1;
+    ]]>
+    </select>
+    
+    
+    <select id="getForReturnUse"	parameterType="string"		resultType="org.fincl.miss.server.scheduler.job.guest.vo.RentHistVo">
+		SELECT 
+			A.RENT_SEQ, A.USR_SEQ, A.VOUCHER_SEQ, A.RENT_STATION_ID, A.RENT_RACK_ID, A.RENT_BIKE_ID, A.RENT_CLS_CD,
+			A.RENT_YN, A.RENT_DTTM, C.USR_MPN_NO, BIKE.BIKE_NO, B.PAYMENT_CLS_CD, B.PAYMENT_SEQ, 
+			B.PAYMENT_DTTM, B.VOUCHER_STR_DTTM, B.VOUCHER_END_DTTM, B.VOUCHER_USE_YN,
+		TRUNCATE(((TIMESTAMPDIFF(SECOND, RENT_DTTM,(IFNULL(END_DTTM, NOW()))))/60),0) USE_MI,BIKE.BIKE_SE_CD,END_DTTM
+		FROM TB_SVC_RENT A
+		LEFT OUTER JOIN TB_SVC_MB MB ON A.USR_SEQ = MB.USR_SEQ, TB_SVC_VOUCHER B,  TB_SVC_USR C,TB_OPR_BIKE BIKE
+		WHERE A.USR_SEQ = B.USR_SEQ
+		AND A.VOUCHER_SEQ  = B.VOUCHER_SEQ
+		AND A.USR_SEQ = C.USR_SEQ
+		AND RENT_BIKE_ID = BIKE.BIKE_ID
+		AND BIKE.TERMINAL_ID = #{bicycleId}
+		ORDER BY A.RENT_DTTM DESC
+		limit 1
+	
+	
+	</select>
+	
+	<select id="getBikeRETURN_GPS"		parameterType="string"	resultType="java.util.HashMap">
+		<![CDATA[
+		SELECT BIKE_LATITUDE,BIKE_LONGITUDE FROM TB_OPR_BIKE_RETURN_GPS_HIST
+			WHERE RENT_SEQ = #{RENT_SEQ} ORDER BY GPS_HIST_SEQ DESC limit 1
+		]]>
+	</select>
+	
+	
+	<select id="CheckStation_ForGPS"		parameterType="java.util.HashMap"	resultType="java.util.HashMap">
+		<![CDATA[
+		SELECT STA_DATA.STATION_ID, STA_DATA.RACK_ID, STA_DATA.DISTANCE_DATA DISTANCE_DATA,DSTNC_LT
+		FROM(
+			SELECT STATION_ID, distance_between(#{BIKE_LATITUDE}, #{BIKE_LONGITUDE}, STATION_LATITUDE,STATION_LONGITUDE) DISTANCE_DATA,DSTNC_LT,RACK.RACK_ID
+			FROM TB_OPR_STATION STA,
+			TB_OPR_RACK RACK,
+			TB_OPR_BIKE BIKE
+			WHERE STATION_USE_YN = 'Y' AND STATION_LATITUDE != 0 AND STATION_LONGITUDE != 0
+			AND RACK.NOW_LOCATE_ID = STA.STATION_ID
+			AND RACK.RACK_SE_CD = CONCAT('RAK_',SUBSTRING(BIKE.BIKE_SE_CD,5,3))
+			AND BIKE.TERMINAL_ID = #{BIKE_ID}
+			) STA_DATA
+			ORDER BY STA_DATA.DISTANCE_DATA LIMIT 1
+			]]>
+	</select>
+	
+	<select id="getBikeMoveDist_COUNT"		parameterType="java.util.HashMap"	resultType="java.util.HashMap">
+		<![CDATA[
+		SELECT USE_SEQ, ACC_DIST,GPS_X,GPS_Y FROM TB_OPR_GPS_DATA_DIST HIST, TB_SVC_RENT RENT
+			WHERE RENT.RENT_SEQ = #{RENT_SEQ}
+			AND HIST.RENT_SEQ = RENT.RENT_SEQ
+			AND HIST.REG_DTTM >= RENT.RENT_DTTM
+			ORDER BY GPS_DATA_SEQ DESC LIMIT 1
+		]]>
+	</select>
+	
+	
+	<select id="getBikeMoveDist_Last"		parameterType="java.util.HashMap"	resultType="double">
+		<![CDATA[
+		SELECT IFNULL(DISTANCE_BETWEEN(GPS_X,GPS_Y,#{BIKE_LATITUDE}, #{BIKE_LONGITUDE}),0) FROM TB_OPR_GPS_DATA_DIST DIST, TB_SVC_RENT RENT
+			WHERE RENT.RENT_SEQ = #{RENT_SEQ}
+			AND DIST.RENT_SEQ = RENT.RENT_SEQ
+			AND DIST.REG_DTTM >= RENT.RENT_DTTM
+			ORDER BY GPS_DATA_SEQ DESC LIMIT 1
+		]]>
+	</select>
+	
+	<select id="getUserWeight"		parameterType="string"		resultType="int">
+	
+		SELECT 
+			IFNULL(MB_WGT, 65) MB_WGT
+		FROM TB_SVC_MB
+		WHERE USR_SEQ = #{usr_SEQ}
+	
+	</select>
+    
+    <select id="getOverFeeMinPolicy"	parameterType="java.util.HashMap"	resultType="java.util.HashMap">	
+		SELECT *
+		FROM TB_SVC_ADD_FEE
+		WHERE ADD_FEE_CLS = #{ADD_FEE_CLS}
+		AND BIKE_SE_CD = #{BIKE_SE_CD}
+		<![CDATA[
+			AND OVER_END_MI = 0
+		]]>
+	</select>
+	
+	<delete id="parkingInfoDelete"		parameterType="String">
+		DELETE FROM TB_OPR_BIKE_PARKING
+		WHERE BIKE_ID = (
+			SELECT  BIKE_ID
+			FROM TB_OPR_BIKE
+			WHERE TERMINAL_ID = #{bicycleId}
+		)
+	</delete>
+	
+	<update id="updateDeviceState"		parameterType="org.fincl.miss.server.scheduler.job.guest.vo.RentHistVo">
+		UPDATE TB_IOT_DEVICE
+			SET 
+				LAST_CONN_DTTM = SYSDATE()
+		WHERE DEVICE_ID =  (SELECT TERMINAL_ID FROM TB_OPR_BIKE WHERE BIKE_ID = #{RENT_BIKE_ID} )
+	</update>
+	
+	
+	<delete id="deleteRentInfo"		parameterType="org.fincl.miss.server.scheduler.job.guest.vo.RentHistVo">
+		DELETE FROM TB_SVC_RENT
+		WHERE RENT_BIKE_ID = #{RENT_BIKE_ID} AND RENT_YN = 'Y'
+	</delete>
+	
+	<select id="getStationNo" parameterType="String" resultType="String">
+		SELECT CONCAT(CONVERT(STATION_NO, UNSIGNED), '') AS STATION_NO 
+		FROM TB_OPR_STATION STA, TB_OPR_RACK RACK 
+		WHERE STA.STATION_ID = RACK.NOW_LOCATE_ID
+		AND RACK.RACK_ID = #{RETURN_RACK_ID}
+	</select>
+	
+	<select id="getStationName" parameterType="String" resultType="String">
+		SELECT STATION_NAME
+		FROM TB_OPR_MLANG_STATION STA, TB_OPR_RACK RACK 
+		WHERE STA.STATION_ID = RACK.NOW_LOCATE_ID
+		AND STA.LANG_CLS_CD = 'LAG_001'
+		AND RACK.RACK_ID = #{RETURN_RACK_ID}
+	</select>
+	
+	
+	<insert id="addENFRC_RETURN" parameterType="org.fincl.miss.server.scheduler.job.guest.vo.RentHistVo">
+        INSERT INTO TB_SVC_ENFRC_RETURN_HIST
+			(STATION_ID, DEVICE_CNNC_CD, ENFRC_RETURN_CD, PARKING_LOCATION, PHOTO_YN
+			, EMRGNCY_YN, SMS_YN, RENT_BIKE_ID, AGENT_ID, PARKING_LOCATION_YN
+			, LATITUDE, LONGITUDE, NEAR_STATION_ID, PARKING_LOCATION_REASON, PARKING_LOCATION_DESC
+			, ENFRC_RETURN_DESC, ADDR, ENFRC_GUBUN_CD
+			, TEAM_SEQ
+			, COMPT_CD
+			, REG_ID
+			, COMPT_DTTM    
+		)
+		VALUES
+		(
+			#{RETURN_STATION_ID}, '1', 'NRR_001', '',  'N'
+			,  'N', 'N', #{RENT_BIKE_ID}, 'scheduler', 'N'
+			, #{GPS_X}, #{GPS_Y}, 
+			(SELECT NEAR.STATION_ID FROM (
+				SELECT STATION_ID,distance_between(#{GPS_X}, #{GPS_Y}, STATION_LATITUDE, STATION_LONGITUDE) AS DIS 
+				FROM TB_OPR_STATION 
+				WHERE STATION_USE_YN  IN ('Y','T')
+				ORDER BY DIS LIMIT 1)NEAR 
+			)
+			, 'SCHEDULER', ''
+			, '', '', 0
+			, ( SELECT TEAM_SEQ FROM TB_OPR_STATION WHERE STATION_ID = #{RETURN_STATION_ID})
+			, '5', 'SCHEDULER', NOW()
+      
+		)
+    </insert>
+	
+	
+    
+    
+    <!--  WIIMO BIZ END -->
 </mapper>
