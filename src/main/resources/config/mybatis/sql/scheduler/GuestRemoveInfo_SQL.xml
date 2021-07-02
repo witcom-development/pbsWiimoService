@@ -12,6 +12,17 @@
 			AND CANCLE.RENT_DTTM <= DATE_ADD(NOW(), INTERVAL -1 HOUR)
     ]]>      
     </select>
+    
+    
+    <select id="chkRentInvalidReturnOver" resultType="java.util.HashMap">
+    <![CDATA[  
+		SELECT *,
+			TRUNCATE(((TIMESTAMPDIFF(SECOND, RENT_DTTM,(IFNULL(END_DTTM, NOW()))))/60),0) USE_MI,
+			TRUNCATE(((TIMESTAMPDIFF(SECOND, (IFNULL(END_DTTM, NOW())), NOW()))/60),0) REQ_MI
+			FROM TB_SVC_RENT
+			WHERE RENT_YN = 'Y' AND END_DTTM IS NOT NULL
+    ]]>      
+    </select>
   
     <update id="setCancelInfo" parameterType="String">
         UPDATE TB_SVC_RENT_CANCLE
