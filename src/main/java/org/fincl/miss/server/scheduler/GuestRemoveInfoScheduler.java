@@ -138,6 +138,41 @@ public class GuestRemoveInfoScheduler {
 		List<HashMap<String, Object>> InvalidReturnList = guestRemoveInfoMapper.chkRentInvalidReturnOver();
 		if(InvalidReturnList.size() > 0) 
 		{
+			for(HashMap<String, Object> InvalidRent : InvalidReturnList){
+			
+				MainPayUtil MainPayutil = new MainPayUtil();
+				
+				try{
+					
+					int req_sec = Integer.valueOf(InvalidRent.get("REQ_SEC").toString());
+					
+					logger.debug("[반납 요청 시간 경과  ] ="+ InvalidRent.get("END_DTTM") +", 경과 시간 = " + req_sec + "초" );
+					
+			//		if(Integer.valueOf(String.valueOf(InvalidRent.get("REQ_MI").toString()) > 0)
+					
+					if(req_sec >= 30)
+					{
+						logger.debug("[강제 반납 처리 진행 : USRSEQ :"+InvalidRent.get("USR_SEQ")+" DEV_ID="+InvalidRent.get("RENT_BIKE_ID") +" , 강제 반납 처리 !!!!!!!!!");
+						//반납시에 일어나는 과정 
+						//이용시간 관련 과금 진행 , 과금 관련 문자 발송.
+						// 이력, 파킹정보는 대여시 정보로 파킹
+						//자전거 상태 BKS_012 
+						
+						//TB_SVC_ENFRC_RETURN_HIST 에 넣어주기 
+						//rent_테이블 삭제 
+						
+						
+						
+					}
+				}
+				catch (Exception e) 
+				{
+		        	
+		       //     guestRemoveInfoMapper.addRefundHistFail(refund.get("PAYMENT_SEQ").toString());
+			//		guestRemoveInfoMapper.setCancelInfo(refund.get("CANCLE_SEQ").toString());
+					logger.debug("******************************[반납 실패 자전거  FAIL 3] " );
+		        }
+			}//for
 		}
 		logger.debug("******************************[반납 실패 자전거 조회 END]******************************");
 		
