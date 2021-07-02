@@ -30,17 +30,9 @@ import egovframework.rte.psl.dataaccess.mapper.Mapper;
 @Mapper("guestRemoveInfoMapper")
 public interface GuestRemoveInfoMapper {
 
-	/**
-	 * @location : org.fincl.miss.server.scheduler.job.guest.GuestRemoveInfoMapper.getGuestVoucherStataus
-	 * @writeDay : 2015. 8. 27. 오후 2:48:23
-	 * @return   : List<String>
-	 * @Todo     :
-	 * -------------------------------------------------------------
-	 *      수정일      |      수정자      |              수정내용
-	 * -------------------------------------------------------------
-	 *    2015. 8. 27.   |   ymshin   |  최초작성
-	 */ 
 	List<HashMap<String, Object>> chkGuestVoucherStataus();
+	
+	List<HashMap<String, Object>> chkRentInvalidReturnOver();
 
 	/**
 	 * @param seq 
