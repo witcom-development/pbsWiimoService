@@ -76,7 +76,9 @@ public class BikeBatteryErrorScheduler {
 	}
 	@ClusterSynchronized( jobToken="iotBikeBatterErrorBatchProc")
 	public void iotBikeBatterErrorBatchProc() {
-		logger.debug("***********************베터리*ERB_004********************************");
+		
+		logger.debug("START ***********************통신장애_밧데리 *ERB_004********************************");
+		
 		List<HashMap<String,String>> bikeList = bikeBatteryErrorService.getIOTBikeErrorList();
 		Map<String,String> pMap = null;
 		int result = 0;
@@ -89,6 +91,7 @@ public class BikeBatteryErrorScheduler {
 				pMap.put("clsCd",  "ERB_004");
 				
 				String chkResult = bikeBatteryErrorService.chkExistMTCFaultInfo(pMap);
+				/*
 				if(chkResult == null || chkResult.equals("")) {
 					pMap.put("errorType", "new");
 					chkResult = bikeBatteryErrorService.chkExistMTCFaultInfo(pMap);
@@ -101,8 +104,11 @@ public class BikeBatteryErrorScheduler {
 						result = bikeBatteryErrorService.setBikeErrorProc(pMap);
 					}
 				} 
+				*/
 			}
 		}
+		logger.debug("END  ***********************통신장애_밧데리 *ERB_004********************************");
+		
 	}
 	
 }
