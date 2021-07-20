@@ -12,7 +12,7 @@
     
     <select id="chkExistMTCFaultInfo"  parameterType="Map" resultType="String">
          SELECT IFNULL(F.FAULT_SEQ,'')
-           FROM spb.TB_MTC_FAULT_INFO F LEFT OUTER JOIN spb.TB_MTC_FAULT_DETL D ON F.FAULT_SEQ = D.FAULT_SEQ
+           FROM wiigo.TB_MTC_FAULT_INFO F LEFT OUTER JOIN wiigo.TB_MTC_FAULT_DETL D ON F.FAULT_SEQ = D.FAULT_SEQ
           WHERE F.READ_CLS_CD ='S'
             AND F.EQUIPMENT_ID = #{equipmentId}
             AND F.EQUIPMENT_CLS_CD = #{devType}
@@ -82,13 +82,14 @@
     <select id="getIOTBikeErrorList" resultType="Map">
          SELECT A.BIKE_ID        AS deviceId 
               , B.LAST_CONN_DTTM AS lastConnDttm
+              , C.ELEC_BATT AS batt
            FROM TB_OPR_BIKE_PARKING A, TB_IOT_DEVICE B, TB_OPR_BIKE C 
           WHERE A.BIKE_ID = C.BIKE_ID 
             AND  C.BIKE_ID = B.DEVICE_ID
     <![CDATA[                
             AND DATE_ADD( B.LAST_CONN_DTTM ,INTERVAL ((SELECT ADD_VAL1
-                                                       FROM spb.TB_SYS_COM_CD
-                                                       WHERE COM_CD = 'MSI_003') * 3) minute) < NOW()
+                                                       FROM wiigo.TB_SYS_COM_CD
+                                                       WHERE COM_CD = 'MSI_003') * 20) minute) < NOW()
     ]]>                                                   
     </select>    
     <!--
