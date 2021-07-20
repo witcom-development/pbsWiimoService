@@ -307,7 +307,7 @@ public class GuestRemoveInfoScheduler {
 		logger.debug("QR_procReturn :: {}", info); // 로그 수정....2018.04.02
 
 		// 자전거 주차 정보 INSERT PARKING
-		/*
+		
 		try 
 		{
 			guestRemoveInfoMapper.insertParkingInfo(info);
@@ -315,7 +315,7 @@ public class GuestRemoveInfoScheduler {
 		catch (Exception e) 
 		{
 		}
-		*/
+		
 
 		// 자전거 과거 배치 이력 UPDATE LOCATION_BIKE
 		guestRemoveInfoMapper.updateBikeLocation(info);
