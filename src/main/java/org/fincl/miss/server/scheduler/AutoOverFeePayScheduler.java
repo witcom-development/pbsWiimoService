@@ -125,6 +125,7 @@ public class AutoOverFeePayScheduler  {
 			for(OverFeeVO fee : targetList) 
 			{
 				logger.debug("##### target in USR SEQ ==> " + fee.getUsrSeq());
+				fee.setTotAmt(fee.getOverFee());
 
 				MainPayUtil MainPayutil = new MainPayUtil();
 				try 
@@ -156,6 +157,7 @@ public class AutoOverFeePayScheduler  {
 						fee.setProcessReasonDesc( resultMessage);
 						result = autoOverFeePayService.addTicketPaymentFail(fee);
 						logger.debug("count-->>"+fee.getPaymentAttCnt());
+						result = autoOverFeePayService.setOverFeePayComplete(fee);
 						logger.debug("******************************[초과요금 자동 결제 FAIL] USR_SEQ = " + fee.getUsrSeq());
 					}
 					else
@@ -207,6 +209,7 @@ public class AutoOverFeePayScheduler  {
 							fee.setProcessReasonDesc( e.getMessage());
 							result = autoOverFeePayService.addTicketPaymentFail(fee);
 							logger.debug("count-->>"+fee.getPaymentAttCnt());
+							result = autoOverFeePayService.setOverFeePayComplete(fee);
 							logger.debug("******************************[초과요금 자동 결제 FAIL] USR_SEQ = " + fee.getUsrSeq());
 						}
 					}
