@@ -80,9 +80,13 @@ public class BikeBatteryErrorScheduler {
 		logger.debug("START ***********************통신장애_밧데리 *ERB_004********************************");
 		
 		List<HashMap<String,String>> bikeList = bikeBatteryErrorService.getIOTBikeErrorList();
+		
 		Map<String,String> pMap = null;
 		int result = 0;
 		if(bikeList != null){
+			
+	//		logger.debug("deviceid {}",bikeList.get(0));
+					
 			for(HashMap<String,String> map : bikeList) {
 				pMap = new HashMap<String, String>();
 				pMap.put("errorType", "old");
