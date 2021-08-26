@@ -155,8 +155,8 @@ public class GuestRemoveInfoScheduler {
 					logger.debug("[반납 요청 시간 경과  ] ="+ InvalidRent.get("END_DTTM") +", 경과 시간 = " + req_sec + "초" );
 					
 			//		if(Integer.valueOf(String.valueOf(InvalidRent.get("REQ_MI").toString()) > 0)
-					
-					if(req_sec >= 30)
+					//강제반납 (반납버튼 누른후) 50초로 늘림.
+					if(req_sec >= 50)
 					{
 						logger.debug("[강제 반납 처리 진행 : USRSEQ :"+InvalidRent.get("USR_SEQ")+" DEV_ID="+InvalidRent.get("RENT_BIKE_ID") +" , 강제 반납 처리 !!!!!!!!!");
 						RentHistVo info = guestRemoveInfoMapper.getForReturnUse(InvalidRent.get("RENT_BIKE_ID").toString());
