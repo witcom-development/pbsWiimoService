@@ -459,6 +459,21 @@
     </insert>
 	
 	
+	<select id="getPaymentInfoExist" parameterType="org.fincl.miss.server.scheduler.job.overFeePayScheuler.vo.OverFeeVO" resultType="java.util.Map">
+    <![CDATA[
+		SELECT CASE
+			   	WHEN COUNT(PAYMENT_CONFM_NO) > 0
+			   	THEN 'Y'
+			   	ELSE 'N'
+			   END AS PAYMENT_INFO_EXIST, COUNT(*)
+		FROM TB_SVC_PAYMENT
+		WHERE 1=1
+		AND USR_SEQ = #{usrSeq}
+		AND PAYMENT_CONFM_NO = #{paymentConfmNo}
+		AND MB_SERIAL_NO = #{mb_serial_no}
+    ]]>  
+    </select>
+	
     
     
     <!--  WIIMO BIZ END -->
