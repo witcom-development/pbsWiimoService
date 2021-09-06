@@ -265,11 +265,23 @@ public class GuestRemoveInfoScheduler {
 						
 						if(sysTime - baseRentTime > 0)
 						{
-							info.setOVER_FEE_YN("Y");		
+				//			info.setOVER_FEE_YN("Y");		
 							int overPay = getPay(minPolicy, (sysTime- baseRentTime));
-							info.setOVER_FEE(overPay+"");
-							baseRentTime = Integer.parseInt(minPolicy.get("OVER_STR_MI").toString());
-							info.setOVER_MI(String.valueOf(sysTime - baseRentTime));
+							
+							if(overPay > 0)	// 2021.09.06 추가  0 일 경우 있음.
+							{
+								info.setOVER_FEE_YN("Y");		
+								
+								info.setOVER_FEE(overPay+"");
+								baseRentTime = Integer.parseInt(minPolicy.get("OVER_STR_MI").toString());
+								info.setOVER_MI(String.valueOf(sysTime - baseRentTime));
+							}
+							else
+							{
+								logger.debug("ADD_OVER_FEE baseTime {} , sysTime {} overPay {} is NO_OVER_FEE",baseRentTime,sysTime,overPay);
+								
+							}
+							
 						}
 						// 반납 프로세스 실행
 						guestRemoveInfoMapper.parkingInfoDelete(info.getRENT_BIKE_ID());
@@ -304,7 +316,7 @@ public class GuestRemoveInfoScheduler {
 		String rentSeq = "";
 		boolean b_overfee = false;
 
-		logger.debug("QR_procReturn :: {}", info); // 로그 수정....2018.04.02
+		logger.debug("QR_enforce_procReturn :: {}", info); // 로그 수정....2018.04.02
 
 		// 자전거 주차 정보 INSERT PARKING
 		
@@ -393,8 +405,11 @@ public class GuestRemoveInfoScheduler {
 					fee.setRentHistSeq(info.getRENT_HIST_SEQ());	//add rent_hist_seq by dearkim
 					
 					Map<String, String> returnMap = new HashMap<String, String>();
+					
 					returnMap = guestRemoveInfoMapper.getPaymentInfoExist(fee);
+					
 					logger.debug("check-->> " +returnMap.get("PAYMENT_INFO_EXIST"));
+					
 					if(returnMap.get("PAYMENT_INFO_EXIST").equals("N"))
 					{
 						logger.debug("##### 초과요금 결제정보가 없다. insert payment_seq ##### {}",fee.getRentHistSeq());
