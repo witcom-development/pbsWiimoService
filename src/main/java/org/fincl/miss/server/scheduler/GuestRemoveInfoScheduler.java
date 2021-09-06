@@ -252,7 +252,7 @@ public class GuestRemoveInfoScheduler {
 			        	info.setCONSUME_CAL(cal+"");
 			        	int baseRentTime = 0;
 			        	
-			        	logger.debug(" #####  server_time is baseRentTime {}  sysTime {}"  , baseRentTime, sysTime);
+			        	logger.debug(" ##### [scheduler] server_time is baseRentTime {}  sysTime {}"  , baseRentTime, sysTime);
 			    		
 			    		
 						Map<String, Object> fee = new HashMap<String, Object>();
