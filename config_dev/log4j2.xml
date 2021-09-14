@@ -88,6 +88,12 @@
 			<AppenderRef ref="console"/> <!-- 개발할때는 console 추가 -->
 		</Logger>
 		
+		<Logger name="org.fincl.miss.server" level="ALL" additivity="FALSE">
+			<AppenderRef ref="serviceMapping"/>	<!-- 서비스별 레벨 조정 필터 적용된 어펜더 -->
+			<AppenderRef ref="clientTracing"/> 	<!-- 클라이언트 아이디별 로그 파일 작성 어펜더 -->
+			<AppenderRef ref="console"/> <!-- 개발할때는 console 추가 -->
+		</Logger>
+		
 		<Logger name="io.netty" level="DEBUG" additivity="FALSE">
 			<AppenderRef ref="console"/>
 		</Logger>
