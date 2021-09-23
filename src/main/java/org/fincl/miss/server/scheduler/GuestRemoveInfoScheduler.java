@@ -426,6 +426,7 @@ public class GuestRemoveInfoScheduler {
 				} 
 				catch (Exception e)
 				{
+					e.printStackTrace();
 				}
 			}
 		}
