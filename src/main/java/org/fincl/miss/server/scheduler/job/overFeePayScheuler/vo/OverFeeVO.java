@@ -53,7 +53,16 @@ public class OverFeeVO {
     private String order_certify_key;
     private String payment_card_no;
     private String card_company;
+    private String voucher_seq;
     
+    
+    
+	public String getVoucher_seq() {
+		return voucher_seq;
+	}
+	public void setVoucher_seq(String voucher_seq) {
+		this.voucher_seq = voucher_seq;
+	}
 	public String getPayment_cls_cd() {
 		return payment_cls_cd;
 	}
