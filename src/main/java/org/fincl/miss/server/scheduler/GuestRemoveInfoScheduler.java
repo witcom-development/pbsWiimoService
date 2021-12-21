@@ -67,8 +67,10 @@ public class GuestRemoveInfoScheduler {
 		List<HashMap<String, Object>> refundList = guestRemoveInfoMapper.chkGuestVoucherStataus();
 		if(refundList.size() > 0) 
 		{
-			for(HashMap<String, Object> refund : refundList){
+			for(HashMap<String, Object> refund : refundList)
+			{
 				
+				/*
 				MainPayUtil MainPayutil = new MainPayUtil();
 				try 
 				{
@@ -102,17 +104,18 @@ public class GuestRemoveInfoScheduler {
 						guestRemoveInfoMapper.addRefundHistFail(refund.get("PAYMENT_SEQ").toString());
 						guestRemoveInfoMapper.setCancelInfo(refund.get("CANCLE_SEQ").toString());
 						logger.debug("******************************[미대여 건 자동 환불 FAIL] CANCLE_SEQ = " + refund.get("CANCLE_SEQ").toString());
+						
 					}
 					else
 					{	// API 호출 성공
 						try 
 						{
-							
+							*/
 							guestRemoveInfoMapper.addRefundHist(refund.get("PAYMENT_SEQ").toString());
 							guestRemoveInfoMapper.setVoucherUseComplete(refund.get("VOUCHER_SEQ").toString());
 							guestRemoveInfoMapper.setCancelInfo(refund.get("CANCLE_SEQ").toString());
 							logger.debug("******************************[미대여 건 자동 환불 SUCCESS] CANCLE_SEQ = " + refund.get("CANCLE_SEQ").toString());
-							
+							/*
 						} 
 						catch (Exception e) 
 						{
@@ -131,7 +134,7 @@ public class GuestRemoveInfoScheduler {
 					guestRemoveInfoMapper.setCancelInfo(refund.get("CANCLE_SEQ").toString());
 					logger.debug("******************************[미대여 건 자동 환불 FAIL 3] CANCLE_SEQ = " + refund.get("CANCLE_SEQ").toString());
 		        }
-				
+				*/
 			}
 		  
 		}
