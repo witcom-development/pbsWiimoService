@@ -111,10 +111,13 @@ public class GuestRemoveInfoScheduler {
 						try 
 						{
 							*/
+						if(refund.get("PARTCLR_MATTER").equals("PAY"))	//2021.12.28  후 결제 일대는 1분에 지우도록 수정함 
+						{
 							guestRemoveInfoMapper.addRefundHist(refund.get("PAYMENT_SEQ").toString());
 							guestRemoveInfoMapper.setVoucherUseComplete(refund.get("VOUCHER_SEQ").toString());
 							guestRemoveInfoMapper.setCancelInfo(refund.get("CANCLE_SEQ").toString());
-							logger.debug("******************************[미대여 건 자동 환불 SUCCESS] CANCLE_SEQ = " + refund.get("CANCLE_SEQ").toString());
+							logger.debug("******************************[미대여 건 자동 환불 SUCCESS : NO_PAY] CANCLE_SEQ = " + refund.get("CANCLE_SEQ").toString());
+						}
 							/*
 						} 
 						catch (Exception e) 
