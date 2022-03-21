@@ -75,7 +75,8 @@ public class BikeBatteryErrorScheduler {
 		}
 	}
 	@ClusterSynchronized( jobToken="iotBikeBatterErrorBatchProc")
-	public void iotBikeBatterErrorBatchProc() {
+	public void iotBikeBatterErrorBatchProc() 
+	{
 		
 		logger.debug("START ***********************통신장애_밧데리 *ERB_004********************************");
 		
@@ -112,6 +113,50 @@ public class BikeBatteryErrorScheduler {
 			}
 		}
 		logger.debug("END  ***********************통신장애_밧데리 *ERB_004********************************");
+		
+		
+		
+		logger.debug("START ***********************GPS장애 *ERB_007********************************");
+		
+		List<HashMap<String,String>> bikeGPSErrorList = bikeBatteryErrorService.getIOTBikeGPSErrorList();
+		
+		pMap = null;
+		result = 0;
+		if(bikeGPSErrorList != null)
+		{
+			
+	//		logger.debug("deviceid {}",bikeList.get(0));
+					
+			for(HashMap<String,String> map : bikeGPSErrorList)
+			{
+				pMap = new HashMap<String, String>();
+				pMap.put("errorType", "old");
+				pMap.put("equipmentId",  map.get("deviceId"));
+				pMap.put("devType"  ,  "DEV_001");
+				pMap.put("clsCd",  "ERB_007");
+				
+				String chkResult = bikeBatteryErrorService.chkExistMTCFaultInfo(pMap);
+				
+				if(chkResult == null || chkResult.equals(""))
+				{
+					pMap.put("errorType", "new");
+					chkResult = bikeBatteryErrorService.chkExistMTCFaultInfo(pMap);
+					if(chkResult == null || chkResult.equals(""))
+					{
+						result = bikeBatteryErrorService.addNewBikeErrorProc(pMap);
+						result = bikeBatteryErrorService.setBikeErrorProc(pMap);
+					}
+					else
+					{
+						pMap.put("faultSeq", chkResult);
+						pMap.put("errorType", "old");
+						result = bikeBatteryErrorService.setBikeErrorProc(pMap);
+					}
+				} 
+				
+			}
+		}
+		logger.debug("END  ***********************GPS장애 *ERB_007********************************");
 		
 	}
 	

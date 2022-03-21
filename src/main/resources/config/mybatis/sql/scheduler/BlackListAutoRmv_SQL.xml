@@ -4,11 +4,11 @@
     <select id="getBlackTargetList" resultType="String">
     <![CDATA[
         SELECT Cast(A.USR_SEQ  as char) AS usrSeq
-          FROM spb.TB_SVC_USR_BLKLIST A, spb.TB_SVC_MB B 
+          FROM wiigo.TB_SVC_USR_BLKLIST A, wiigo.TB_SVC_MB B 
          WHERE A.USR_SEQ = B.USR_SEQ
            AND B.LEAVE_YN = 'N'
            AND A.BLKLIST_REASON_CD = 'BLA_001'
-           AND A.BLKLIST_REG_DTTM <= DATE_FORMAT(DATE_SUB(NOW() , INTERVAL (SELECT ADD_VAL1 FROM spb.TB_SYS_COM_CD WHERE COM_CD = 'MSI_021') DAY),'%Y%m%d' )+INTERVAL 1 DAY -INTERVAL 1 SECOND
+           AND A.BLKLIST_REG_DTTM <= DATE_FORMAT(DATE_SUB(NOW() , INTERVAL (SELECT ADD_VAL1 FROM wiigo.TB_SYS_COM_CD WHERE COM_CD = 'MSI_021') DAY),'%Y%m%d' )+INTERVAL 1 DAY -INTERVAL 1 SECOND
     ]]>
     </select>
     <update id="delBlackList" parameterType="String">

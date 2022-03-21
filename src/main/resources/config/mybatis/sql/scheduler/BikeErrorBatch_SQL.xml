@@ -3,9 +3,9 @@
 <mapper namespace="org.fincl.miss.server.scheduler.job.bikeError.BikeBatteryErrorMapper">
     <select id="getBikeBatteryErrorList" resultType="String">
      SELECT B.BIKE_ID
-       FROM spb.TB_OPR_BIKE B INNER JOIN spb.TB_OPR_BIKE_PARKING P ON B.BIKE_ID = P.BIKE_ID
+       FROM wiigo.TB_OPR_BIKE B INNER JOIN wiigo.TB_OPR_BIKE_PARKING P ON B.BIKE_ID = P.BIKE_ID
       WHERE B.DBTRY_CNT >= (SELECT ADD_VAL1
-                            FROM spb.TB_SYS_COM_CD
+                            FROM wiigo.TB_SYS_COM_CD
                            WHERE COM_CD = 'MSI_004')
     
     </select>
@@ -22,7 +22,7 @@
     </select>    
     
     <update id="initBatteryCnt"  parameterType="Map">
-        UPDATE spb.TB_OPR_BIKE
+        UPDATE wiigo.TB_OPR_BIKE
         <trim prefix="set" prefixOverrides=",">
            <if test='clsCd == "ERB_003"'>
            DBTRY_CNT = 0
@@ -34,12 +34,12 @@
          WHERE BIKE_ID = #{equipmentId} 
     </update>    
     <update id="setRackStatus"  parameterType="Map">
-        UPDATE spb.TB_OPR_RACK
+        UPDATE wiigo.TB_OPR_RACK
            SET RACK_STUS_CD = 'RAS_001'
          WHERE RACK_ID = #{equipmentId} 
     </update>    
     <update id="setApStatus"  parameterType="Map">
-        UPDATE spb.TB_IOT_DEVICE
+        UPDATE wiigo.TB_IOT_DEVICE
            SET DEVICE_STUS_CD = 'APS_001'
          WHERE DEVICE_ID = #{equipmentId} 
     </update>    
@@ -48,7 +48,7 @@
         	SELECT IFNULL(MAX(CONVERT(FAULT_SEQ, UNSIGNED))+1,1) AS faultSeq 
         	  FROM TB_MTC_FAULT_INFO
     	</selectKey>
-        INSERT INTO spb.TB_MTC_FAULT_INFO
+        INSERT INTO wiigo.TB_MTC_FAULT_INFO
             (
              EQUIPMENT_ID
             ,EQUIPMENT_CLS_CD
@@ -68,7 +68,7 @@
             )
     </insert>
     <insert id="addDeviceErrFaultDetail" parameterType="Map">
-        INSERT INTO spb.TB_MTC_FAULT_DETL
+        INSERT INTO wiigo.TB_MTC_FAULT_DETL
             (
              FAULT_SEQ
             ,FAULT_CLS_CD
@@ -90,7 +90,21 @@
             AND DATE_ADD( B.LAST_CONN_DTTM ,INTERVAL ((SELECT ADD_VAL1
                                                        FROM wiigo.TB_SYS_COM_CD
                                                        WHERE COM_CD = 'MSI_003') * 20) minute) < NOW()
-    ]]>                                                   
+    ]]>
+    </select>
+    
+    
+    <select id="getIOTBikeGPSErrorList" resultType="Map">
+         SELECT BIKE_ID AS deviceId FROM TB_OPR_BIKE 
+         	WHERE
+         	BIKE_STUS_CD = 'BKS_003' AND
+    <![CDATA[
+    		GPS_NO_CNT > (SELECT ADD_VAL1
+         	FROM wiigo.TB_SYS_COM_CD        
+            WHERE COM_CD = 'MSI_040') 
+    ]]>
+    
+                                                      
     </select>    
     <!--
         장애저치 정기점검-자전거, AP ,거치대. 
@@ -100,27 +114,27 @@
         <when test='devType == "DEV_001"'>
         <![CDATA[    
          SELECT BIKE_ID
-           FROM spb.TB_OPR_BIKE
+           FROM wiigo.TB_OPR_BIKE
            WHERE DATE_ADD(LAST_CHK_DTTM ,INTERVAL (SELECT ADD_VAL1
-                                                     FROM spb.TB_SYS_COM_CD
+                                                     FROM wiigo.TB_SYS_COM_CD
                                                     WHERE COM_CD = 'MSI_006')  DAY) < NOW()
         ]]>                                            
         </when>
         <when  test='devType == "DEV_003"'>
         <![CDATA[
          SELECT DEVICE_ID
-           FROM spb.TB_IOT_DEVICE
+           FROM wiigo.TB_IOT_DEVICE
            WHERE DATE_ADD(LAST_CHK_DTTM ,INTERVAL (SELECT ADD_VAL1
-                                                     FROM spb.TB_SYS_COM_CD
+                                                     FROM wiigo.TB_SYS_COM_CD
                                                     WHERE COM_CD = 'MSI_007')  DAY) <  NOW()
         ]]>                                               
         </when>
         <otherwise>
         <![CDATA[
          SELECT RACK_ID
-           FROM spb.TB_OPR_RACK
+           FROM wiigo.TB_OPR_RACK
            WHERE DATE_ADD(LAST_CHK_DTTM ,INTERVAL (SELECT ADD_VAL1
-                                                     FROM spb.TB_SYS_COM_CD
+                                                     FROM wiigo.TB_SYS_COM_CD
                                                     WHERE COM_CD = 'MSI_008')  DAY) < NOW()
          ]]>                                                
         </otherwise>

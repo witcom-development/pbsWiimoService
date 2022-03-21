@@ -101,4 +101,6 @@ public interface BikeBatteryErrorService {
 	 *    2015. 9. 1.   |   ymshin   |  최초작성
 	 */ 
 	List<HashMap<String, String>> getIOTBikeErrorList();
+	
+	List<HashMap<String, String>> getIOTBikeGPSErrorList();
 }

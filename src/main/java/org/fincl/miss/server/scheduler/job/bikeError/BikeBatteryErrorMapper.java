@@ -102,6 +102,8 @@ public interface BikeBatteryErrorMapper {
 	 *    2015. 9. 1.   |   ymshin   |  최초작성
 	 */ 
 	List<HashMap<String, String>> getIOTBikeErrorList();
+	
+	List<HashMap<String, String>> getIOTBikeGPSErrorList();
 
 	/**
 	 * @location : org.fincl.miss.server.scheduler.job.bikeError.BikeBatteryErrorMapper.getTargetDeviceList

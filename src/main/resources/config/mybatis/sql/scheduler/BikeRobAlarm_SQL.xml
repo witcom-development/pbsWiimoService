@@ -17,11 +17,11 @@
                        ,ROB.RACK_ID
                        ,(SELECT BIKE_NO FROM TB_OPR_BIKE WHERE BIKE_ID = ROB.BIKE_ID) AS BIKE_NO
                        ,REG_DTTM
-                 FROM spb.TB_OPR_ROB_BRI ROB
-                left outer join TB_OPR_ALARM_HIST HIST ON  ROB.BIKE_ID = HIST.BIKE_ID  and HIST.ALARM_DTTM  <= (NOW()- INTERVAL CONVERT((SELECT ADD_VAL1 FROM spb.TB_SYS_COM_CD   WHERE COM_CD = 'MSI_018'), UNSIGNED) minute)
-                WHERE REG_DTTM BETWEEN  (NOW()- INTERVAL CONVERT((SELECT ADD_VAL1 FROM spb.TB_SYS_COM_CD   WHERE COM_CD = 'MSI_018'), UNSIGNED) minute) AND NOW() 
+                 FROM wiigo.TB_OPR_ROB_BRI ROB
+                left outer join TB_OPR_ALARM_HIST HIST ON  ROB.BIKE_ID = HIST.BIKE_ID  and HIST.ALARM_DTTM  <= (NOW()- INTERVAL CONVERT((SELECT ADD_VAL1 FROM wiigo.TB_SYS_COM_CD   WHERE COM_CD = 'MSI_018'), UNSIGNED) minute)
+                WHERE REG_DTTM BETWEEN  (NOW()- INTERVAL CONVERT((SELECT ADD_VAL1 FROM wiigo.TB_SYS_COM_CD   WHERE COM_CD = 'MSI_018'), UNSIGNED) minute) AND NOW() 
                 GROUP BY ROB.BIKE_ID       )  A  
-            WHERE A.CNT >= (SELECT ADD_VAL1 FROM spb.TB_SYS_COM_CD   WHERE COM_CD = 'MSI_019')
+            WHERE A.CNT >= (SELECT ADD_VAL1 FROM wiigo.TB_SYS_COM_CD   WHERE COM_CD = 'MSI_019')
    ]]>          
    </select>
    <insert id="addHistAlarm" parameterType="Map">

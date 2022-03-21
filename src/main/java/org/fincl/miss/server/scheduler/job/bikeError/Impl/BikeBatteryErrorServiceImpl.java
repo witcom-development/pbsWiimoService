@@ -78,6 +78,7 @@ public class BikeBatteryErrorServiceImpl implements BikeBatteryErrorService {
 		// TODO Auto-generated method stub
 		return bikeBatteryErrorMapper.chkExistMTCFaultInfo(pMap);
 	}
+	
 
 	/**
 	 * @location   : org.fincl.miss.server.scheduler.job.bikeError.Impl.BikeBatteryErrorService.setBikeErrorProc
@@ -90,7 +91,7 @@ public class BikeBatteryErrorServiceImpl implements BikeBatteryErrorService {
 	public int setBikeErrorProc(Map<String, String> pMap) {
 		int result = bikeBatteryErrorMapper.addDeviceErrFaultDetail(pMap);
 		if(pMap.get("clsCd").equalsIgnoreCase("ERB_003") 
-				|| (pMap.get("errorType").equals("new") && ( pMap.get("clsCd").equalsIgnoreCase("ERB_001") ||  pMap.get("clsCd").equalsIgnoreCase("ERB_004")))) {
+				|| (pMap.get("errorType").equals("new") && ( pMap.get("clsCd").equalsIgnoreCase("ERB_001") || pMap.get("clsCd").equalsIgnoreCase("ERB_004") ||  pMap.get("clsCd").equalsIgnoreCase("ERB_007")))) {
 			result = bikeBatteryErrorMapper.initBatteryCnt(pMap);
 		}
 		return result;
@@ -119,6 +120,14 @@ public class BikeBatteryErrorServiceImpl implements BikeBatteryErrorService {
 	public List<HashMap<String, String>> getIOTBikeErrorList() {
 		// TODO Auto-generated method stub
 		return bikeBatteryErrorMapper.getIOTBikeErrorList();
+	}
+	
+	
+	@Override
+	@Transactional(readOnly=true)
+	public List<HashMap<String, String>> getIOTBikeGPSErrorList() {
+		// TODO Auto-generated method stub
+		return bikeBatteryErrorMapper.getIOTBikeGPSErrorList();
 	}
 	
 	
