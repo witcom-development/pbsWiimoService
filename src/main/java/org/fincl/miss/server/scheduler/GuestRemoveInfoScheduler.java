@@ -145,7 +145,8 @@ public class GuestRemoveInfoScheduler {
 		
 		
 		
-		logger.debug("******************************[반납 실패 자전거 조회 START]******************************");
+		logger.debug("******************************[반납 실패 자전거 조회  NO_START]******************************");
+	/*	
 		List<HashMap<String, Object>> InvalidReturnList = guestRemoveInfoMapper.chkRentInvalidReturnOver();
 		if(InvalidReturnList.size() > 0) 
 		{
@@ -309,6 +310,7 @@ public class GuestRemoveInfoScheduler {
 		        }
 			}//for
 		}
+	*/	
 		logger.debug("******************************[반납 실패 자전거 조회 END]******************************");
 		
 		
