@@ -50,78 +50,25 @@ public class RentSendScheduler  {
 	@SuppressWarnings("unchecked")
 	public @ResponseBody void rentSendPushProc() 
 	{
-	//@ClusterSynchronized( jobToken="rentSendPushProc")
-	//public void rentSendPushProc() throws Exception 
-	//{
-		/*
-       logger.debug("******************************[단말 문자 전송 start] ******************************");
-	   TrustManager[] trustAllCerts = new TrustManager[] {
-	       new X509TrustManager() {
-	          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-	            return null;
-	          }
-	          public void checkClientTrusted(X509Certificate[] certs, String authType) {  }
-	          public void checkServerTrusted(X509Certificate[] certs, String authType) {  }
-
-	       }
-	    };
-	    SSLContext sc = SSLContext.getInstance("SSL");
-	    sc.init(null, trustAllCerts, new java.security.SecureRandom());
-	    HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-	    // Create all-trusting host name verifier
-	    HostnameVerifier allHostsValid = new HostnameVerifier() {
-	        public boolean verify(String hostname, SSLSession session) {
-	          return true;
-	        }
-	    };
-	    // Install the all-trusting host verifier
-	    HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-		
-		restTemplate = new RestTemplate();
-		restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-		restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
-		restVrerifyTemplate = new RestTemplate();
-		restVrerifyTemplate.getMessageConverters().add(new StringHttpMessageConverter());
-		*/
-		
-		
 		int result = 0;
 		List<HashMap<String, String>> msgTargetList = returnAlramMapper.getBikeRentSend();
-        logger.debug("******************************대여 전송 스타트*["+msgTargetList.size()+"]*******************************************");
+        logger.debug("****************************** 급방전 자전거 문자 전송 스타트*["+msgTargetList.size()+"]*******************************************");
         if(msgTargetList != null && msgTargetList.size() > 0) 
         {
         	logger.debug("******************************전송 start ********************************************");
         	
             for(HashMap<String, String> target :msgTargetList) 
             {
-            	SmsMessageVO smsVo = null;
-            	smsVo = new SmsMessageVO();
-            	
-            	if(target.get("DEVICE_MPN_NO") != null && !target.get("DEVICE_MPN_NO").equals(""))
- 				{
- 				
-     				String destno = String.valueOf(target.get("DEVICE_MPN_NO"));
-     				if(destno != null && !destno.equals(""))
-     				{
-     					
-     					SendSMSVo sms2 = new SendSMSVo();
-     					sms2.setCmd_id("3C");
-     					sms2.setState("01");
-     					sms2.setDev_state("02");
-     					sms2.setDev_type("00");
-     					sms2.setUser_type("01");
-     					sms2.setUser_seq(String.valueOf(target.get("USR_SEQ")));
-     					String Message = sms2.getCmd_id() + sms2.getState() + sms2.getDev_state() + sms2.getDev_type()
-     							+ sms2.getUser_type() + sms2.getUser_seq();
-     					logger.debug("[Message " + Message + "]");
-     					smsVo.setDestno(destno);
-     					smsVo.setMsg(Message);
-     					SmsSender.sender(smsVo);
-     				}
+            	if(target != null && target.get("BIKE_NO") != null)
+            	{
+            		String  bikeNo = target.get("BIKE_NO");
+            		SmsMessageVO smsVo = new SmsMessageVO();
+		 			smsVo.setDestno("01094184422");
+		 			
+		 			smsVo.setMsg("<위고> " + bikeNo +" 킥보드가 가 급방전 의심 대상입니다. 확인 부탁드리겠습니다.");
+		 			SmsSender.sender(smsVo);
+		 			result = returnAlramMapper.setBikeRentSendComplete(target.get("BIKE_NO"));
  				}
-            	
-            	result = returnAlramMapper.setBikeRentSendComplete(String.valueOf(target.get("RENT_SEQ")));
             }
             logger.debug("******************************sms 전송 complete*************************************");
         }

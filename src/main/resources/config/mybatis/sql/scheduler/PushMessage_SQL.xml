@@ -51,20 +51,27 @@
      
      <select id="getBikeRentSend" resultType="java.util.HashMap" >
      <![CDATA[ 
-     	SELECT RENT_SEQ, USR_SEQ, VOUCHER_SEQ, RENT_STATION_ID, RENT_RACK_ID, RENT_BIKE_ID ,DEVICE.DEVICE_MPN_NO
-			FROM TB_SVC_RENT RENT ,TB_IOT_DEVICE DEVICE
-			WHERE RENT_YN = 'N'
-			AND RENT_SEND_YN = 'N'
-			AND RENT.RENT_BIKE_ID = DEVICE.DEVICE_ID
-			ORDER BY RENT_SEQ ASC
+     	SELECT BIKE_NO,DATE_FORMAT(REG_DTTM,'%Y-%m-%d %H:%i') AS REG_DTTM,DEV_BATT FROM TB_OPR_QR_LOG WHERE QR_LOG_SEQ IN 
+     	(
+			SELECT MAX(QR_LOG_SEQ) FROM TB_OPR_QR_LOG WHERE DEVICE_ID IN 
+			(
+				SELECT BIKE_ID FROM TB_OPR_BIKE 
+				WHERE  BIKE_SE_CD = 'BIK_002' AND BIKE_STUS_CD NOT IN ( 'BKS_004' , 'BKS_005' , 'BKS_007' , 'BKS_016' , 'BKS_008')
+				AND PERIOD_MANAGE_SEND_YN = 'N' 
+			)
+			GROUP BY DEVICE_ID
+		) 
+		AND DEV_BATT >= 10
+		AND TIMESTAMPDIFF(MINUTE, REG_DTTM, NOW())>=30
+		ORDER BY DEVICE_ID, QR_LOG_SEQ DESC
 
      ]]>                                        
      </select>
      
      <update id="setBikeRentSendComplete" parameterType="String">
-         UPDATE TB_SVC_RENT
-           SET RENT_SEND_YN = 'Y' 
-         WHERE RENT_SEQ = #{Rent_Seq}  
+         UPDATE TB_OPR_BIKE
+           SET PERIOD_MANAGE_SEND_YN = 'Y' 
+         WHERE BIKE_NO = #{BIKE_NO}  
      </update>
     
       
